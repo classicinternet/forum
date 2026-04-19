@@ -1,138 +1,152 @@
-<!-- SAME CODE AS YOURS — ONLY SCRIPT PART FIXED -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClassicInternetForum</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+
+<body class="bg-black text-white">
+
+<div class="p-6">
+    <h1 class="text-2xl font-bold mb-4">ClassicInternet Forum</h1>
+
+    <button onclick="openModal()" class="bg-white text-black px-4 py-2 mb-4">
+        New Thread
+    </button>
+
+    <div id="threads"></div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
+    <div class="bg-zinc-900 p-6 w-full max-w-md">
+        <input id="title" placeholder="Title" class="w-full mb-2 p-2 bg-black border">
+        <textarea id="content" placeholder="Content" class="w-full mb-2 p-2 bg-black border"></textarea>
+
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAC_1Q9M2a470-hnw" data-callback="onCaptchaSuccess"></div>
+
+        <button id="submitBtn" onclick="submitPost()" disabled class="bg-white text-black px-4 py-2 mt-4 opacity-50">
+            Submit
+        </button>
+
+        <button onclick="closeModal()" class="ml-2">Close</button>
+    </div>
+</div>
 
 <script>
-const WORKER_URL = 'https://indiachan.indiachan.workers.dev/'; 
+const WORKER_URL = "https://indiachan.indiachan.workers.dev/";
 
+let captchaToken = null;
 let isVerified = false;
-let captchaToken = null; // ✅ FIX
-let frame = null;
 
-// ✅ FIX: Capture token
+// ✅ FIXED CAPTCHA
 function onCaptchaSuccess(token) {
     captchaToken = token;
     isVerified = true;
 
-    const btn = document.getElementById('submitBtn');
+    const btn = document.getElementById("submitBtn");
     btn.disabled = false;
-    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+    btn.classList.remove("opacity-50");
 }
 
-function acceptAge() { 
-    localStorage.setItem('v3_age', 't'); 
-    document.getElementById('ageWall').remove(); 
-}
-if(localStorage.getItem('v3_age')) document.getElementById('ageWall').remove();
+// API helper
+async function api(path="", method="GET", body=null) {
+    const url = WORKER_URL + path + (path.includes("?") ? "&" : "?") + "t=" + Date.now();
 
-async function handleFileUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const status = document.getElementById('uploadStatus');
-    status.innerText = "Uploading...";
-    status.classList.remove('hidden');
-
-    try {
-        const config = await api("?config=true");
-        const formData = new FormData();
-        formData.append("image", file);
-
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${config.imgbb}`, { 
-            method: "POST", 
-            body: formData 
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            document.getElementById('inpImageLink').value = data.data.url;
-            status.innerText = "Upload Success!";
-            setTimeout(() => status.classList.add('hidden'), 2000);
-        }
-    } catch (e) { 
-        status.classList.add('hidden'); 
-    }
-}
-
-function toggleExpand(el) { 
-    el.classList.toggle('expanded'); 
-}
-
-// ✅ FIX: Better error handling
-async function api(path = "", method = "GET", body = null, headers = {}) {
-    const sep = path.includes('?') ? '&' : '?';
-    const url = `${WORKER_URL}${path}${sep}t=${Date.now()}`;
-
-    const options = { 
-        method, 
-        headers: { ...headers } 
-    };
+    const options = { method };
 
     if (body) {
-        options.headers['Content-Type'] = 'application/json';
+        options.headers = { "Content-Type": "application/json" };
         options.body = JSON.stringify(body);
     }
 
-    let res;
     try {
-        res = await fetch(url, options);
+        const res = await fetch(url, options);
+
+        if (!res.ok) {
+            console.error("API error:", await res.text());
+            return null;
+        }
+
+        return await res.json();
     } catch (e) {
         console.error("Fetch failed:", e);
         return null;
     }
-
-    if (!res.ok) {
-        console.error("API error:", res.status, await res.text());
-        return null;
-    }
-
-    return await res.json();
 }
 
+// LOAD THREADS
+async function loadThreads() {
+    const data = await api();
+
+    if (!data) return;
+
+    document.getElementById("threads").innerHTML = data.map(t => `
+        <div class="border p-4 mb-2 cursor-pointer" onclick="viewThread('${t.id}')">
+            <b>${t.title}</b><br>
+            Replies: ${t.replies.length}
+        </div>
+    `).join("");
+}
+
+// VIEW THREAD
+async function viewThread(id) {
+    const t = await api("?id=" + id);
+    if (!t) return;
+
+    document.getElementById("threads").innerHTML = `
+        <button onclick="loadThreads()">← Back</button>
+        <h2 class="text-xl">${t.title}</h2>
+        ${t.replies.map(r => `<div class="border p-2 mt-2">${r.content}</div>`).join("")}
+    `;
+}
+
+// SUBMIT
 async function submitPost() {
     if (!isVerified || !captchaToken) return;
 
-    const btn = document.getElementById('submitBtn');
+    const btn = document.getElementById("submitBtn");
     btn.disabled = true;
-    btn.innerText = "TRANSMITTING...";
-
-    const h = window.location.hash; 
-    const isReply = h.startsWith('#thread/');
+    btn.innerText = "Posting...";
 
     const res = await api("", "POST", {
-        token: captchaToken, // ✅ FIX
-        type: isReply ? 'reply' : 'thread',
-        threadId: isReply ? h.split('/')[1] : null,
-        title: document.getElementById('inpTitle').value || "Anonymous",
-        content: document.getElementById('inpContent').value,
-        image: document.getElementById('inpImageLink').value
+        token: captchaToken,
+        type: "thread",
+        title: document.getElementById("title").value,
+        content: document.getElementById("content").value
     });
 
-    if(res) { 
-        document.getElementById('inpTitle').value = "";
-        document.getElementById('inpContent').value = "";
-        document.getElementById('inpImageLink').value = "";
-
-        captchaToken = null; // ✅ RESET
+    if (res) {
+        captchaToken = null;
         isVerified = false;
 
         closeModal();
-        btn.disabled = false;
-        btn.innerText = "Transmit Message";
-
-        await router();
+        loadThreads();
     } else {
-        btn.disabled = false;
-        btn.innerText = "Transmit Message";
-        alert("Submission failed.");
+        alert("Failed");
     }
+
+    btn.disabled = false;
+    btn.innerText = "Submit";
 }
 
-function openModal() { 
-    document.getElementById('postModal').classList.remove('hidden'); 
-    if (typeof turnstile !== "undefined") turnstile.reset(); 
+// MODAL
+function openModal() {
+    document.getElementById("modal").classList.remove("hidden");
+    if (typeof turnstile !== "undefined") turnstile.reset();
 }
 
-function closeModal() { 
-    document.getElementById('postModal').classList.add('hidden'); 
+function closeModal() {
+    document.getElementById("modal").classList.add("hidden");
 }
+
+// INIT
+loadThreads();
 </script>
+
+</body>
+</html>
