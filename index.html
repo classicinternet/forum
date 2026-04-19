@@ -111,11 +111,11 @@
     <div id="postModal" class="hidden fixed inset-0 bg-black/90 z-[1000] flex items-end sm:items-center justify-center backdrop-blur-md">
         <div class="glass w-full max-w-lg p-6 sm:p-10 rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-y-auto max-h-[90vh]">
             <div class="flex justify-between items-center mb-8">
-                <span id="modalTitle" class="text-[11px] font-black text-white uppercase tracking-widest">New Transmission</span>
+                <span id="modalTitle" class="text-[11px] font-black text-white uppercase tracking-widest">New Thread</span>
                 <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <input id="inpTitle" type="text" maxlength="70" placeholder="Subject (Max 70)" class="w-full p-5 rounded-2xl mb-4 text-sm font-bold">
-            <textarea id="inpContent" maxlength="2000" placeholder="Enter anonymous content...
+            <textarea id="inpContent" maxlength="2000" placeholder="Enter content...
 (Line starting with > will turn blue)" class="w-full p-5 rounded-2xl mb-5 h-48 outline-none text-sm leading-relaxed whitespace-pre-wrap"></textarea>
 
             <div class="mb-4">
@@ -300,7 +300,7 @@
             const headerInfo = filterArchive
                 ? `<div class="flex flex-col gap-2 mb-6">
                     <button onclick="window.location.hash=''" class="w-fit text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return to Board</button>
-                    <div class="text-[10px] font-black uppercase text-white tracking-[0.3em]">Viewing: The Archive</div>
+                    <div class="text-[10px] font-black uppercase text-white tracking-[0.3em]">Viewing: The Archive - The "Archive" is a filtered view of the board that displays only locked threads, which are threads that have either reached the 500-reply limit or were manually closed by an administrator.</div>
                    </div>` : '';
 
             document.getElementById('view-container').innerHTML = headerInfo + filtered.map((t, i) => `
