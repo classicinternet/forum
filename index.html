@@ -259,6 +259,14 @@
         async function submitPost() {
             if (!isVerified) return;
             const btn = document.getElementById('submitBtn');
+            
+            // CAPTCHA FIX: Retrieve token from Turnstile
+            const token = typeof turnstile !== "undefined" ? turnstile.getResponse() : null;
+            if (!token) {
+                alert("Please complete the captcha.");
+                return;
+            }
+
             btn.disabled = true;
             btn.innerText = "TRANSMITTING...";
 
@@ -270,7 +278,8 @@
                 threadId: isReply ? h.split('/')[1] : null,
                 title: document.getElementById('inpTitle').value || "Anonymous",
                 content: document.getElementById('inpContent').value,
-                image: document.getElementById('inpImageLink').value
+                image: document.getElementById('inpImageLink').value,
+                token: token // CAPTCHA FIX: Send token to Worker
             });
 
             if(res) { 
@@ -285,7 +294,7 @@
             } else {
                 btn.disabled = false;
                 btn.innerText = "Transmit Message";
-                alert("Submission failed.");
+                alert("Submission failed. Check your internet or captcha.");
             }
         }
 
