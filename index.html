@@ -29,6 +29,14 @@
         .thumb-img{width:100%;height:100%;object-fit:cover;opacity:0.9;}
         .img-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
         .img-grid .post-img{margin-top:0;}
+        /* Image wrapper with overlay open-in-new-tab arrow */
+        .post-img-wrap{position:relative;display:inline-block;margin-top:12px;}
+        .img-grid .post-img-wrap{margin-top:0;}
+        .post-img-wrap .post-img{margin-top:0;display:block;}
+        .img-open-btn{position:absolute;top:6px;right:6px;width:22px;height:22px;background:rgba(0,0,0,0.55);border-radius:6px;color:#fff;font-size:11px;text-decoration:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s;backdrop-filter:blur(4px);}
+        .post-img-wrap:hover .img-open-btn{opacity:1;}
+        /* Always show on touch devices */
+        @media (hover:none){.img-open-btn{opacity:0.7;}}
 
         .sticky-tag{background:#fff;color:#000;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:900;margin-right:6px;}
         .nsfw-tag{background:#ef4444;color:#fff;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:900;margin-right:6px;}
@@ -216,38 +224,49 @@
     </footer>
 </div>
 
-<!-- Post Modal -->
 <div id="postModal" class="hidden fixed inset-0 bg-black/90 z-[1000] flex items-end sm:items-center justify-center backdrop-blur-md">
-    <div class="glass w-full max-w-lg p-6 sm:p-10 rounded-t-[3rem] sm:rounded-[3rem] shadow-2xl overflow-y-auto max-h-[90vh]">
-        <div class="flex justify-between items-center mb-8">
+    <div class="glass w-full max-w-lg rounded-t-[2rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col" style="max-height:92dvh;max-height:92vh;">
+        <!-- Fixed header -->
+        <div class="flex justify-between items-center px-6 pt-5 pb-3 flex-shrink-0">
             <span id="modalTitle" class="text-[11px] font-black text-white uppercase tracking-widest">New Transmission</span>
-            <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <button onclick="closeModal()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <input id="inpTitle" type="text" maxlength="70" placeholder="Subject (Max 70)" class="w-full p-5 rounded-2xl mb-4 text-sm font-bold">
-        <div class="relative mb-5">
-            <textarea id="inpContent" maxlength="2000" placeholder="Enter anonymous content...
-(> line = blue  |  Ctrl+Enter = submit)" class="w-full p-5 rounded-2xl h-48 outline-none text-sm leading-relaxed whitespace-pre-wrap"></textarea>
-            <span id="charCount" class="absolute bottom-3 right-4 text-[9px] font-bold text-slate-600">0 / 2000</span>
-        </div>
-        <div class="mb-4">
-            <p class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">Media <span class="normal-case text-slate-600 font-normal">(up to 4 images)</span></p>
-            <div class="flex flex-wrap gap-2">
-                <input id="inpImageLink" type="url" placeholder="Paste image URL..." class="flex-1 p-4 rounded-xl text-xs font-bold min-w-[160px]">
-                <button onclick="document.getElementById('fileInput').click()" class="bg-slate-800 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase border border-white/10">Upload Images</button>
-                <button onclick="prepareFrame()" class="bg-slate-700 text-white px-4 py-3 rounded-xl text-[10px] font-black uppercase">Upload Video</button>
+        <!-- Scrollable body -->
+        <div class="overflow-y-auto flex-1 px-6 pb-6">
+            <input id="inpTitle" type="text" maxlength="70" placeholder="Subject (Max 70)" class="w-full p-4 rounded-2xl mb-3 text-sm font-bold">
+            <div class="relative mb-4">
+                <textarea id="inpContent" maxlength="2000" placeholder="Write your message here…
+
+Tips & features:
+  > start a line with > for blue text (greentext)
+  >>PostNo. to quote & link a specific reply
+  Ctrl+Enter to submit instantly
+  Paste an image/video URL directly here
+  Links auto-preview with site info
+  Check NSFW below to blur your post
+  Max 2000 characters" class="w-full p-4 rounded-2xl outline-none text-sm leading-relaxed whitespace-pre-wrap" style="min-height:120px;height:28vmax;max-height:220px;resize:none;"></textarea>
+                <span id="charCount" class="absolute bottom-3 right-4 text-[9px] font-bold text-slate-600">0 / 2000</span>
             </div>
-            <input type="file" id="fileInput" class="hidden" accept="image/*" multiple onchange="handleFileUpload(this)">
-            <div id="uploadPreview"></div>
-            <p id="uploadStatus" class="text-[9px] mt-2 font-bold text-white hidden"></p>
+            <div class="mb-3">
+                <p class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">Media <span class="normal-case text-slate-600 font-normal">(up to 10 images)</span></p>
+                <div class="flex flex-wrap gap-2">
+                    <input id="inpImageLink" type="url" placeholder="Paste image URL..." class="flex-1 p-3 rounded-xl text-xs font-bold min-w-[140px]">
+                    <button onclick="document.getElementById('fileInput').click()" class="bg-slate-800 text-white px-3 py-2.5 rounded-xl text-[9px] font-black uppercase border border-white/10">Upload Images</button>
+                    <button onclick="prepareFrame()" class="bg-slate-700 text-white px-3 py-2.5 rounded-xl text-[9px] font-black uppercase">Upload Video</button>
+                </div>
+                <input type="file" id="fileInput" class="hidden" accept="image/*" multiple onchange="handleFileUpload(this)">
+                <div id="uploadPreview"></div>
+                <p id="uploadStatus" class="text-[9px] mt-2 font-bold text-white hidden"></p>
+            </div>
+            <label class="flex items-center gap-3 mb-4 cursor-pointer select-none w-fit">
+                <input type="checkbox" id="inpNsfw">
+                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Mark as NSFW <span class="text-red-400">(blurs content)</span></span>
+            </label>
+            <div class="flex justify-center mb-4">
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAAC_1Q9M2a470-hnw" data-callback="onCaptchaSuccess"></div>
+            </div>
+            <button id="submitBtn" onclick="submitPost()" class="bg-white text-black w-full py-4 rounded-[1.25rem] font-black uppercase tracking-widest hover:bg-slate-200 transition-all opacity-50 cursor-not-allowed" disabled>Transmit Message</button>
         </div>
-        <label class="flex items-center gap-3 mb-6 cursor-pointer select-none w-fit">
-            <input type="checkbox" id="inpNsfw">
-            <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Mark as NSFW <span class="text-red-400">(blurs content)</span></span>
-        </label>
-        <div class="flex justify-center mb-8">
-            <div class="cf-turnstile" data-sitekey="0x4AAAAAAC_1Q9M2a470-hnw" data-callback="onCaptchaSuccess"></div>
-        </div>
-        <button id="submitBtn" onclick="submitPost()" class="bg-white text-black w-full py-5 rounded-[1.5rem] font-black uppercase tracking-widest hover:bg-slate-200 transition-all opacity-50 cursor-not-allowed" disabled>Transmit Message</button>
     </div>
 </div>
 
@@ -492,7 +511,7 @@ document.getElementById('inpContent').addEventListener('keydown',e=>{
 //  MULTI-IMAGE UPLOAD
 // ═══════════════════════════════════════════════════════════
 async function handleFileUpload(input){
-    const files=Array.from(input.files).slice(0,4-_uploadedImages.length);
+    const files=Array.from(input.files).slice(0,10-_uploadedImages.length);
     if(!files.length)return;
     const s=document.getElementById('uploadStatus');
     s.innerText=`Uploading 0/${files.length}...`;s.classList.remove('hidden');
@@ -568,21 +587,21 @@ function renderLinkPreview(url){
             <div class="link-preview-title" id="${id}-title">${title}</div>
             <div class="link-preview-url">${short}</div>
         </div>
-        <i class="fa-solid fa-arrow-up-right-from-square text-slate-600 text-[10px] flex-shrink-0"></i>
     </a>`;
 }
 
 // ═══════════════════════════════════════════════════════════
-//  BACKLINKS
+//  BACKLINKS  — keyed by post ID (not user ID), 4chan-style
 // ═══════════════════════════════════════════════════════════
 function buildBacklinks(replies){
     const map={};
     replies.forEach((r,idx)=>{
-        const matches=[...(r.content||'').matchAll(/>>([a-fA-F0-9]{8})/g)];
+        // Match >>numericPostId in content
+        const matches=[...(r.content||'').matchAll(/>>(\d{10,14})/g)];
         matches.forEach(m=>{
-            const uid=m[1];
-            if(!map[uid])map[uid]=[];
-            if(!map[uid].find(x=>x.id===r.id))map[uid].push({id:r.id,seq:idx+1});
+            const pid=m[1];
+            if(!map[pid])map[pid]=[];
+            if(!map[pid].find(x=>x.id===r.id))map[pid].push({id:r.id,seq:idx+1});
         });
     });
     return map;
@@ -599,24 +618,29 @@ function scrollToPost(postId){
 //  CONTENT PROCESSOR
 // ═══════════════════════════════════════════════════════════
 function processContent(content,allReplies){
-    const uidToPost={};
-    (allReplies||[]).forEach(r=>{uidToPost[r.userId]=r.id;});
+    // Map post ID → post ID (for scroll-to)
+    const postIds=new Set((allReplies||[]).map(r=>r.id));
     let html=(content||'')
         .split('\n')
         .map(line=>line.startsWith('>')&&!line.startsWith('>>')?`<span class="greentext">${line}</span>`:line)
         .join('\n');
-    html=html.replace(/>>([a-fA-F0-9]{8})/g,(match,uid)=>{
-        const pid=uidToPost[uid];
-        return pid?`<a class="quote-link" onclick="scrollToPost('${pid}')">&#187;&#187;${uid}</a>`:`<span class="text-white font-bold">&gt;&gt;${uid}</span>`;
+    // >>numericPostId — clickable, scrolls to that post
+    html=html.replace(/>>(\d{10,14})/g,(match,pid)=>{
+        if(postIds.has(pid)) return`<a class="quote-link" onclick="scrollToPost('${pid}')">&#187;&#187;${pid}</a>`;
+        return`<span class="text-white font-bold">&gt;&gt;${pid}</span>`;
     });
     const embeds=[],previews=[];
     html=html.replace(/(https?:\/\/[^\s<"]+)/g,(match,url)=>{
         const isImg=url.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i);
         const isVid=url.match(/\.(mp4|webm|ogg)(\?.*)?$/i);
-        if(isImg){embeds.push(`<img src="${url}" data-full="${url}" class="post-img" onclick="expandImg(this)" loading="lazy">`);return`<a href="${url}" target="_blank" rel="noopener" class="link-arrow" title="${url}">↗</a>`;}
-        if(isVid){embeds.push(`<video controls class="post-img"><source src="${url}"></video>`);return`<a href="${url}" target="_blank" rel="noopener" class="link-arrow" title="${url}">↗</a>`;}
+        if(isImg){
+            // Arrow overlaid on image, not in text
+            embeds.push(`<div class="post-img-wrap"><img src="${url}" data-full="${url}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${url}" target="_blank" rel="noopener" class="img-open-btn" title="Open full image">↗</a></div>`);
+            return'';
+        }
+        if(isVid){embeds.push(`<video controls class="post-img"><source src="${url}"></video>`);return'';}
         previews.push(renderLinkPreview(url));
-        return`<a href="${url}" target="_blank" rel="noopener" class="link-arrow" title="${url}">↗</a>`;
+        return''; // no inline arrow — the card itself is the link
     });
     return{html,embeds,previews};
 }
@@ -629,7 +653,7 @@ function renderPostImages(post){
     if(!images.length)return'';
     return`<div class="img-grid">${images.map((src,i)=>{
         if(src.startsWith('turbo:'))return`<div class="video-container"><iframe src="https://turbo.cr/e/${src.replace('turbo:','')}" allowfullscreen></iframe></div>`;
-        return`<img src="${thumbs[i]||src}" data-full="${src}" class="post-img" onclick="expandImg(this)" loading="lazy">`;
+        return`<div class="post-img-wrap"><img src="${thumbs[i]||src}" data-full="${src}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${src}" target="_blank" rel="noopener" class="img-open-btn" title="Open full image">↗</a></div>`;
     }).join('')}</div>`;
 }
 function getThumb(op){
@@ -769,8 +793,8 @@ function renderThread(t,page){
                 const{html:cHtml,embeds,previews}=processContent(r.content,replies);
                 const isOpt=!!r._optimistic;
                 const isFirstOnPage=currentPage===1&&i===0;
-                const myBacklinks=(backlinkMap[r.userId]||[]).filter(b=>b.id!==r.id);
-                const backlinksHtml=myBacklinks.length?`<div class="backlinks">${myBacklinks.map(b=>`<span class="backlink-pill" onclick="scrollToPost('${b.id}')" title="Jump to reply">&gt;&gt;${r.userId} #${b.seq}</span>`).join('')}</div>`:'';
+                const myBacklinks=(backlinkMap[r.id]||[]).filter(b=>b.id!==r.id);
+                const backlinksHtml=myBacklinks.length?`<div class="backlinks">${myBacklinks.map(b=>`<span class="backlink-pill" onclick="scrollToPost('${b.id}')" title="Jump to reply">&#187;&#187;${r.id} #${b.seq}</span>`).join('')}</div>`:'';
                 const mId=regMenu([
                     {label:'Report',fn:()=>handleAction('report',t.id,r.id)},
                     {label:'Edit Post',fn:()=>handleEdit(t.id,r.id)},
@@ -783,8 +807,10 @@ function renderThread(t,page){
                 const nsfwClose=r.nsfw?`</div></div>`:'';
                 return`<div id="post-${r.id}" class="glass p-7 rounded-[2.5rem] ${isOpt?'optimistic':''}" style="transition:border-color 0.4s,background 0.4s;">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <span onclick="quoteReply('${r.userId}')" class="text-[10px] font-black text-slate-500 uppercase clickable-id">ID:&nbsp;${r.userId}</span>
+                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span class="text-[10px] font-black text-slate-500 uppercase">ID:&nbsp;${r.userId}</span>
+                            <span class="text-slate-700 text-[10px]">·</span>
+                            <span onclick="quotePost('${r.id}')" class="text-[10px] font-black text-slate-400 clickable-id cursor-pointer" title="Click to quote this post">No.${r.id}</span>
                             <span class="text-[9px] font-bold text-slate-700">${r.time||''}</span>
                             ${isFirstOnPage?'<span class="text-[8px] font-black bg-white/10 text-white px-2 py-0.5 rounded-full uppercase">OP</span>':''}
                             ${r.nsfw?'<span class="nsfw-tag">NSFW</span>':''}
@@ -810,10 +836,10 @@ function renderThread(t,page){
 function goPage(p){if(_currentThreadId)window.location.hash=`#thread/${_currentThreadId}/${p}`;}
 
 // ═══════════════════════════════════════════════════════════
-//  QUOTE REPLY
+//  QUOTE POST  (by post ID, 4chan-style)
 // ═══════════════════════════════════════════════════════════
-function quoteReply(userId){
-    document.getElementById('inpContent').value+=`>>${userId}\n`;
+function quotePost(postId){
+    document.getElementById('inpContent').value+=`>>${postId}\n`;
     openModal(); document.getElementById('inpContent').focus();
 }
 
