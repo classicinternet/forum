@@ -112,14 +112,12 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
 </style>
 </head>
 <body class="pb-32">
-
 <div id="siteBannerEl" style="display:none">
   <div class="site-banner">
     <div class="site-banner-text" id="siteBannerText"></div>
     <button class="site-banner-close" onclick="closeSiteBanner()">✕</button>
   </div>
 </div>
-
 <div id="globalMenu"></div>
 <div id="toast"></div>
 <div id="newRepliesBanner" onclick="dismissBanner()">
@@ -127,7 +125,6 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
   <span style="margin-left:12px;opacity:.4;font-size:9px;font-weight:900">✕</span>
 </div>
 <button id="refreshBtn" onclick="hardRefresh()"><i class="fa-solid fa-rotate-right mr-1"></i>Refresh</button>
-
 <div id="adminDot" onclick="toggleAdminPanel()" title="Admin Panel">
   <span></span><span></span><span></span>
 </div>
@@ -136,7 +133,6 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
   <button onclick="adminSetSiteBanner()">📢 Set Site Banner</button>
   <button onclick="adminClearSiteBanner()" class="warn">🗑 Clear Site Banner</button>
 </div>
-
 <div id="ageWall" class="fixed inset-0 bg-black z-[500] flex items-center justify-center p-6 text-center">
   <div class="max-w-sm w-full">
     <h2 class="text-white font-black text-2xl tracking-tighter mb-2">ClassicInternet.github.io/FORUM</h2>
@@ -144,7 +140,6 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
     <button onclick="acceptAge()" class="bg-white text-black w-full py-5 rounded-2xl font-black tracking-widest hover:scale-105 transition-all shadow-lg">I AM 18+ / ENTER</button>
   </div>
 </div>
-
 <div class="max-w-2xl mx-auto px-4">
   <header class="py-10">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -175,7 +170,6 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
     </div>
   </footer>
 </div>
-
 <div id="postModal" class="hidden fixed inset-0 bg-black/90 z-[1000] flex items-end sm:items-center justify-center backdrop-blur-md">
   <div class="glass w-full max-w-lg rounded-t-[2rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col" style="max-height:92dvh;max-height:92vh">
     <div class="flex justify-between items-center px-6 pt-5 pb-3 flex-shrink-0">
@@ -186,7 +180,6 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
       <input id="inpTitle" type="text" maxlength="70" placeholder="Subject (Max 70)" class="w-full p-4 rounded-2xl mb-3 text-sm font-bold">
       <div class="relative mb-4">
         <textarea id="inpContent" maxlength="2000" placeholder="Write your message here…
-
 Tips:
   > line starts with > → blue text
   >>PostNo. → quote & link a reply
@@ -219,28 +212,22 @@ Tips:
     </div>
   </div>
 </div>
-
 <script>
 const W='https://classicforum.indiachan.workers.dev/';
 const CACHE_TTL=20000,POLL_MS=60000;
-
 let isVerified=false,captchaToken=null;
 const _cache={},_etags={},_pending={},_ogCache={};
 let _imgs=[];
 const _ms={};let _mc=0;
 const reg=items=>{const id='mx'+(++_mc);_ms[id]=items;return id;};
 let _tid=null,_trc=0,_pg=1,_bi=null;
-
 const cGet=k=>{const e=_cache[k];return e&&Date.now()-e.ts<CACHE_TTL?e.d:null;};
 const cSet=(k,d)=>{_cache[k]={d,ts:Date.now()};};
 const cDel=k=>delete _cache[k];
 const cClr=()=>Object.keys(_cache).forEach(k=>delete _cache[k]);
-
 let _tt;
 const toast=(msg,type='info')=>{const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;clearTimeout(_tt);_tt=setTimeout(()=>{el.className='';},3200);};
-
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-
 const BANNER_KEY='cif_banner_ts';
 async function loadSiteBanner(){
   try{
@@ -253,7 +240,6 @@ async function loadSiteBanner(){
   }catch{}
 }
 function closeSiteBanner(){document.getElementById('siteBannerEl').style.display='none';localStorage.setItem(BANNER_KEY,Date.now());}
-
 let _apo=false;
 function toggleAdminPanel(){
   _apo=!_apo;
@@ -268,7 +254,6 @@ document.addEventListener('click',e=>{
 async function adminSetSiteBanner(){const p=prompt('Admin Password:');if(!p)return;const t=prompt('Banner text (empty to clear):');if(t===null)return;const r=await api('','PATCH',{action:'setBanner',text:t||null},{'X-Admin-Pass':p});if(r?.success){toast(t?'Banner set.':'Cleared.','success');loadSiteBanner();}else toast('Failed.','error');}
 async function adminClearSiteBanner(){const p=prompt('Admin Password:');if(!p)return;const r=await api('','PATCH',{action:'setBanner',text:null},{'X-Admin-Pass':p});if(r?.success){document.getElementById('siteBannerEl').style.display='none';toast('Cleared.','success');}else toast('Failed.','error');}
 async function adminSetThreadBanner(tId){const p=prompt('Admin Password:');if(!p)return;const t=prompt('Thread banner (empty to clear):');if(t===null)return;const r=await api(`?id=${tId}`,'PATCH',{action:'setThreadBanner',text:t||null},{'X-Admin-Pass':p});if(r?.success){cClr();toast(t?'Banner set.':'Cleared.','success');router();}else toast('Failed.','error');}
-
 let _sd=null;
 document.getElementById('searchInput').addEventListener('input',function(){
   const q=this.value.trim();
@@ -282,25 +267,39 @@ function closeSearch(){document.getElementById('searchResults').style.display='n
 const hl=(t,q)=>{if(!t||!q)return esc(t||'');const rx=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');return esc(t).replace(rx,'<mark class="search-highlight">$1</mark>');};
 async function runSearch(q){
   const sr=document.getElementById('searchResults');sr.style.display='block';
-  const idx=_bi||[],ql=q.toLowerCase();
-  const br=idx.filter(t=>t.title?.toLowerCase().includes(ql)||t.op?.content?.toLowerCase().includes(ql)).slice(0,15);
+  const ql=q.toLowerCase();
+  // Board index search
+  const br=(_bi||[]).filter(t=>t.title?.toLowerCase().includes(ql)||t.op?.content?.toLowerCase().includes(ql)).slice(0,15);
+  // Reply search — only from client cache, no new API calls
   const tr=[];
-  if(_tid){const c=cGet(`?id=${_tid}&page=${_pg}`);if(c?.replies)c.replies.forEach((r,i)=>{if(r.content?.toLowerCase().includes(ql))tr.push({id:r.id,content:r.content,seq:i+1});});}
+  Object.values(_cache).forEach(entry=>{
+    const d=entry.d;
+    if(d?.replies&&Array.isArray(d.replies)){
+      d.replies.forEach((r,i)=>{
+        if(r.content?.toLowerCase().includes(ql))
+          tr.push({id:r.id,content:r.content,seq:i+1,threadId:String(d.id),threadTitle:d.title||'Thread'});
+      });
+    }
+  });
   if(!br.length&&!tr.length){sr.innerHTML=`<div class="search-empty">No results for "${esc(q)}"</div>`;return;}
   let h='';
-  if(tr.length){h+=`<div style="padding:8px 16px 4px;font-size:8px;font-weight:900;color:#444;text-transform:uppercase">In this thread</div>`;h+=tr.map(r=>`<div class="search-result-item" onclick="scrollToPost('${r.id}');closeSearch()"><div class="search-result-title">Reply #${r.seq}</div><div class="search-result-snippet">${hl(r.content.slice(0,120),q)}</div></div>`).join('');}
-  if(br.length){if(tr.length)h+=`<div style="border-top:1px solid rgba(255,255,255,.05)"></div>`;h+=`<div style="padding:8px 16px 4px;font-size:8px;font-weight:900;color:#444;text-transform:uppercase">Threads</div>`;h+=br.map(t=>`<div class="search-result-item" onclick="window.location.hash='#thread/${t.id}';closeSearch()"><div class="search-result-title">${hl(t.title||'Anonymous',q)}</div><div class="search-result-snippet">${hl((t.op?.content||'').slice(0,120),q)}</div></div>`).join('');}
+  if(tr.length){
+    h+=`<div style="padding:8px 16px 4px;font-size:8px;font-weight:900;color:#444;text-transform:uppercase">Replies</div>`;
+    h+=tr.slice(0,20).map(r=>`<div class="search-result-item" onclick="window.location.hash='#thread/${r.threadId}';setTimeout(()=>scrollToPost('${r.id}'),600);closeSearch()"><div class="search-result-title">${hl(r.threadTitle,q)} · Reply #${r.seq}</div><div class="search-result-snippet">${hl(r.content.slice(0,120),q)}</div></div>`).join('');
+  }
+  if(br.length){
+    if(tr.length)h+=`<div style="border-top:1px solid rgba(255,255,255,.05)"></div>`;
+    h+=`<div style="padding:8px 16px 4px;font-size:8px;font-weight:900;color:#444;text-transform:uppercase">Threads</div>`;
+    h+=br.map(t=>`<div class="search-result-item" onclick="window.location.hash='#thread/${t.id}';closeSearch()"><div class="search-result-title">${hl(t.title||'Anonymous',q)}</div><div class="search-result-snippet">${hl((t.op?.content||'').slice(0,120),q)}</div></div>`).join('');
+  }
   sr.innerHTML=h;
 }
 document.addEventListener('click',e=>{if(!document.getElementById('searchBar').contains(e.target))closeSearch();});
-
 function onCaptchaSuccess(token){isVerified=true;captchaToken=token;const b=document.getElementById('submitBtn');b.disabled=false;b.classList.remove('opacity-50','cursor-not-allowed');}
 function acceptAge(){localStorage.setItem('v3_age','t');document.getElementById('ageWall').remove();}
 if(localStorage.getItem('v3_age'))document.getElementById('ageWall').remove();
-
 document.getElementById('inpContent').addEventListener('input',function(){const n=this.value.length,el=document.getElementById('charCount');el.textContent=n+' / 2000';el.style.color=n>1800?'#f87171':n>1500?'#fbbf24':'';});
 document.getElementById('inpContent').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')submitPost();});
-
 async function handleFileUpload(inp){
   const files=Array.from(inp.files).slice(0,10-_imgs.length);if(!files.length)return;
   const s=document.getElementById('uploadStatus');s.innerText=`Uploading 0/${files.length}…`;s.classList.remove('hidden');
@@ -317,18 +316,19 @@ async function handleFileUpload(inp){
   }catch{s.innerText='Upload error.';}
   inp.value='';
 }
-
 const isCbVid=u=>u.match(/files\.catbox\.moe\/.+\.(mp4|webm|ogg)(\?.*)?$/i);
 const isImg=u=>u.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i);
 const isVid=u=>u.match(/\.(mp4|webm|ogg)(\?.*)?$/i);
-
 function updatePreview(){
   document.getElementById('uploadPreview').innerHTML=_imgs.map((img,i)=>`<div class="preview-item">${(isCbVid(img.url)||isVid(img.url))?`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a1a"><i class="fa-solid fa-film text-slate-400"></i></div>`:`<img src="${img.thumb||img.url}" alt="">`}<button onclick="removeImg(${i})">✕</button></div>`).join('');
 }
 function removeImg(i){_imgs.splice(i,1);updatePreview();}
 function resetImgs(){_imgs=[];document.getElementById('uploadPreview').innerHTML='';document.getElementById('uploadStatus').classList.add('hidden');document.getElementById('inpImageLink').value='';}
-function expandImg(el){el.src=el.dataset.full||el.src;el.classList.toggle('expanded');}
-
+function expandImg(el){
+  if(el.classList.contains('expanded')){el.classList.remove('expanded');return;}
+  el.src=el.dataset.full||el.src;
+  el.classList.add('expanded');
+}
 async function api(path='',method='GET',body=null,xh={}){
   if(method==='GET'&&!body){const h=cGet(path);if(h!==null)return h;}
   const sep=path.includes('?')?'&':'?';
@@ -346,7 +346,6 @@ async function api(path='',method='GET',body=null,xh={}){
     return data;
   }catch{return null;}
 }
-
 const getDom=u=>{try{return new URL(u).hostname.replace('www.','');}catch{return u;}};
 const getFav=u=>{try{return`https://www.google.com/s2/favicons?domain=${new URL(u).hostname}&sz=16`;}catch{return'';}};
 function renderLP(url){
@@ -359,21 +358,19 @@ function renderLP(url){
   const cached=_ogCache[url];const title=cached?.title||dom;
   return`<a href="${url}" target="_blank" rel="noopener" class="link-preview"><img src="${fav}" class="link-preview-favicon" loading="lazy" onerror="this.style.display='none'"><div class="link-preview-text"><div class="link-preview-title" id="${id}">${esc(title)}</div><div class="link-preview-url">${esc(short)}</div></div></a>`;
 }
-
 function buildBL(replies){
   const m={};
   replies.forEach((r,idx)=>{[...(r.content||'').matchAll(/>>(\d{10,14})/g)].forEach(([,pid])=>{if(!m[pid])m[pid]=[];if(!m[pid].find(x=>x.id===r.id))m[pid].push({id:r.id,seq:idx+1});});});
   return m;
 }
 function scrollToPost(pid){const el=document.getElementById('post-'+pid);if(!el)return;el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('post-highlight');setTimeout(()=>el.classList.remove('post-highlight'),2000);}
-
 function procContent(content,replies){
   const pids=new Set((replies||[]).map(r=>r.id));
   let html=(content||'').split('\n').map(l=>l.startsWith('>')&&!l.startsWith('>>')?`<span class="greentext">${esc(l)}</span>`:esc(l)).join('\n');
   html=html.replace(/&gt;&gt;(\d{10,14})/g,(m,pid)=>pids.has(pid)?`<a class="quote-link" onclick="scrollToPost('${pid}')">&gt;&gt;${pid}</a>`:`<span class="text-white font-bold">&gt;&gt;${pid}</span>`);
   const embeds=[];
   html=html.replace(/(https?:\/\/[^\s<"&]+)/g,(m,url)=>{
-    if(isImg(url)){embeds.push(`<div class="post-img-wrap"><img src="${url}" data-full="${url}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${url}" target="_blank" rel="noopener" class="img-open-btn">↗</a></div>`);return'';}
+    if(isImg(url)){embeds.push(`<div class="post-img-wrap"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${url}" data-full="${url}" class="post-img lazyimg" onclick="expandImg(this)"><a href="${url}" target="_blank" rel="noopener" class="img-open-btn">↗</a></div>`);return'';}
     if(isCbVid(url)||isVid(url)){embeds.push(`<video controls class="post-img" style="max-width:100%;max-height:none;border-radius:12px;margin-top:12px"><source src="${url}"></video>`);return'';}
     return renderLP(url);
   });
@@ -381,23 +378,19 @@ function procContent(content,replies){
   html=html.replace(/\n{3,}/g,'\n\n').replace(/^\n+|\n+$/g,'');
   return{html,embeds};
 }
-
 function toggleNsfw(el){el.classList.toggle('blurred');}
-
 function renderPostMedia(post){
   const imgs=(post.images?.length)?post.images:(post.image?[post.image]:[]);
   const thumbs=post.thumbs||[];
   if(!imgs.length)return'';
-  return`<div class="img-grid">${imgs.map((src,i)=>(isCbVid(src)||isVid(src))?`<video controls class="post-img" style="max-width:100%;max-height:none;border-radius:12px"><source src="${src}"></video>`:`<div class="post-img-wrap"><img src="${thumbs[i]||src}" data-full="${src}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${src}" target="_blank" rel="noopener" class="img-open-btn">↗</a></div>`).join('')}</div>`;
+  return`<div class="img-grid">${imgs.map((src,i)=>(isCbVid(src)||isVid(src))?`<video controls class="post-img" style="max-width:100%;max-height:none;border-radius:12px"><source src="${src}"></video>`:`<div class="post-img-wrap"><img src="${thumbs[i]||src}" data-full="${src}" class="post-img lazyimg" onclick="expandImg(this)"><a href="${src}" target="_blank" rel="noopener" class="img-open-btn">↗</a></div>`).join('')}</div>`;
 }
-
 function getThumb(op){
   if(!op||(!op.image&&!op.images?.length))return`<div class="thumb-box flex items-center justify-center text-[10px] text-slate-700 font-black">TXT</div>`;
   const src=op.image||op.images?.[0]||'';
   if(isCbVid(src)||isVid(src))return`<div class="thumb-box flex items-center justify-center"><i class="fa-solid fa-film text-slate-400 text-lg"></i></div>`;
   return`<div class="thumb-box"><img src="${op.thumb||src}" class="thumb-img" loading="lazy" onerror="this.src='https://placehold.co/85x85?text=IMG'"></div>`;
 }
-
 function openMenu(btn,mid){
   const items=_ms[mid];if(!items)return;
   const menu=document.getElementById('globalMenu');
@@ -412,12 +405,10 @@ function openMenu(btn,mid){
 }
 function closeMenu(){const m=document.getElementById('globalMenu');m.style.display='none';m.dataset.mid='';}
 document.addEventListener('click',()=>closeMenu());
-
 function showNRB(n){document.getElementById('newRepliesText').textContent=`↑ ${n} new repl${n===1?'y':'ies'} — tap to refresh`;document.getElementById('newRepliesBanner').style.display='block';}
 function dismissBanner(){document.getElementById('newRepliesBanner').style.display='none';if(_tid){cDel(`?id=${_tid}&page=${_pg}`);router();}}
 window.addEventListener('scroll',()=>{document.getElementById('refreshBtn').style.display=window.scrollY<80?'block':'none';});
 async function hardRefresh(){cClr();await router();toast('Refreshed','success');}
-
 function renderBoard(threads,archive=false){
   document.title="ClassicInternetForum | It's a meeting place for the community.";
   document.getElementById('mainFooter').style.display='block';
@@ -434,8 +425,8 @@ function renderBoard(threads,archive=false){
   let trendHtml='';
   if(!archive){const tr=[...filtered].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);if(tr.some(t=>(t.views||0)>0))trendHtml=`<div class="mb-8"><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">🔥 Trending</div><div class="space-y-3">${tr.map(t=>mkCard(t,0,false)).join('')}</div></div><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">All Threads</div>`;}
   document.getElementById('view-container').innerHTML=hdr+trendHtml+filtered.map((t,i)=>mkCard(t,i,true)).join('');
+  observeLazyImgs();
 }
-
 function renderThread(t,page){
   document.title=`${esc(t.title)} | ClassicInternetForum`;
   document.getElementById('mainFooter').style.display='none';
@@ -450,7 +441,7 @@ function renderThread(t,page){
   const bannerHtml=t.banner?`<div class="thread-banner" id="tBanner"><div class="thread-banner-text"><i class="fa-solid fa-bullhorn mr-2 opacity-70"></i>${esc(t.banner)}</div><button class="thread-banner-close" onclick="document.getElementById('tBanner').remove()">✕</button></div>`:'';
   document.getElementById('view-container').innerHTML=`
     <button onclick="window.location.hash=''" class="mb-6 text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return</button>
-    <h1 class="text-xl font-black text-white mb-6 uppercase tracking-tighter">${esc(t.title)} ${t.locked?'<i class="fa-solid fa-lock text-sm text-red-500 ml-2"></i>':''}</h1>
+    <h1 class="text-xl font-black text-white mb-4 uppercase tracking-tighter">${esc(t.title)} ${t.locked?'<i class="fa-solid fa-lock text-sm text-red-500 ml-2"></i>':''}</h1><div class="flex gap-3 mb-6"><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0} views</span><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.totalReplies||t.replies?.length||0} replies</span></div>
     ${bannerHtml}${pgHtml}
     <div class="space-y-6 pb-24">
     ${replies.map((r,i)=>{
@@ -492,11 +483,10 @@ function renderThread(t,page){
     </div>${pgHtml}
     ${!t.locked?`<div class="fixed bottom-10 left-4 right-4 max-w-2xl mx-auto"><button onclick="openModal()" class="bg-white text-black w-full py-5 rounded-[2rem] font-black uppercase tracking-widest shadow-xl">Post Reply</button></div>`:''}
   `;
+  observeLazyImgs();
 }
-
 function goPage(p){if(_tid)window.location.hash=`#thread/${_tid}/${p}`;}
 function quotePost(pid){document.getElementById('inpContent').value+=`>>${pid}\n`;openModal();document.getElementById('inpContent').focus();}
-
 async function submitPost(){
   if(!isVerified||!captchaToken){toast('Please complete the captcha.','error');return;}
   const btn=document.getElementById('submitBtn');btn.disabled=true;btn.innerText='TRANSMITTING…';
@@ -524,11 +514,9 @@ async function submitPost(){
     }else{toast('Thread posted! Redirecting…','success');const nid=res.threadId;await router();if(nid)setTimeout(()=>{window.location.hash=`#thread/${nid}`;},500);}
   }else{btn.disabled=false;btn.innerText='Transmit Message';toast('Failed: '+(res?.error||'Try again.'),'error');}
 }
-
 async function editPost(tId,rId){const p=prompt('Admin Pass:');if(!p)return;cDel(`?id=${tId}&page=${_pg}`);const t=await api(`?id=${tId}&page=${_pg}`);if(!t)return;const post=t.replies.find(r=>r.id===rId);if(!post)return;const nc=prompt('Edit content:',post.content);if(nc===null||nc===post.content)return;const r=await api(`?id=${tId}&replyId=${rId}`,'PATCH',{action:'edit',newContent:nc},{'X-Admin-Pass':p});if(r){cClr();toast('Edited.','success');router();}else toast('Failed.','error');}
 async function adminNsfw(tId,rId){const p=prompt('Admin Pass:');if(!p)return;const r=await api(`?id=${tId}&replyId=${rId}`,'PATCH',{action:'nsfw'},{'X-Admin-Pass':p});if(r){cClr();toast('NSFW toggled.','success');router();}else toast('Failed.','error');}
 async function verifyAdmin(tId,rId){const p=prompt('Admin Pass:');if(!p)return;const r=await api(`?id=${tId}&replyId=${rId}`,'PATCH',{action:'verifyAdmin'},{'X-Admin-Pass':p});if(r){cClr();toast('Admin badge toggled.','success');router();}else toast('Wrong password.','error');}
-
 async function act(type,tId,rId=null,uid=null){
   if(type==='report'){const r=await api(`?id=${tId}${rId?'&replyId='+rId:''}`, 'PATCH',{action:'report'});if(r)toast('Reported.','success');return;}
   const p=prompt('Admin Pass:');if(!p)return;
@@ -539,10 +527,8 @@ async function act(type,tId,rId=null,uid=null){
   else r=await api(`?id=${tId}${rId?'&replyId='+rId:''}`, 'DELETE',null,H);
   if(r){cClr();router();}else toast('Action failed.','error');
 }
-
 function openModal(){document.getElementById('postModal').classList.remove('hidden');isVerified=false;captchaToken=null;const b=document.getElementById('submitBtn');b.disabled=true;b.classList.add('opacity-50','cursor-not-allowed');b.innerText='Transmit Message';if(typeof turnstile!=='undefined')turnstile.reset();}
 function closeModal(){document.getElementById('postModal').classList.add('hidden');}
-
 async function router(silent=false){
   closeMenu();closeSearch();
   const h=window.location.hash;
@@ -554,7 +540,10 @@ async function router(silent=false){
   }else if(h==='#archive'){const d=await api('');if(!silent)renderBoard(d||[],true);}
   else{const d=await api('');if(!silent)renderBoard(d||[],false);}
 }
-
+const _imgObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){const el=e.target;if(el.dataset.src){el.src=el.dataset.src;delete el.dataset.src;}_imgObs.unobserve(el);}});
+},{rootMargin:'200px'});
+function observeLazyImgs(){document.querySelectorAll('img.lazyimg').forEach(el=>_imgObs.observe(el));}
 setInterval(()=>{if(document.hidden)return;cClr();router(window.location.hash.startsWith('#thread/'));},POLL_MS);
 window.onhashchange=()=>{cClr();router();};
 loadSiteBanner();router();
