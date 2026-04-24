@@ -194,8 +194,8 @@
 <div class="max-w-2xl mx-auto px-4">
     <header class="py-12">
         <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div onclick="window.location.hash=''" class="cursor-pointer group text-center sm:text-left">
-                <h1 class="text-white font-black text-xl tracking-tighter group-hover:text-slate-400 transition-colors">ClassicInternet.github.io/FORUM</h1>
+            <div onclick="window.location.hash=''" class="cursor-pointer group text-center sm:text-left min-w-0">
+                <h1 class="text-white font-black text-base sm:text-xl tracking-tighter group-hover:text-slate-400 transition-colors break-words leading-tight">ClassicInternet.github.io/FORUM</h1>
                 <span class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em]">It's a meeting place for the community.</span>
             </div>
             <button onclick="openModal()" class="bg-white text-black px-8 py-3 rounded-full font-black text-[10px] tracking-widest uppercase shadow-2xl hover:bg-slate-200 transition-all w-full sm:w-auto flex-shrink-0">New Thread</button>
@@ -482,8 +482,12 @@ function onCaptchaSuccess(token){
     btn.disabled=false; btn.classList.remove('opacity-50','cursor-not-allowed');
 }
 function prepareFrame(){
-    frame=window.open('https://turbo.cr/upload/api','turbo_upload','screenX=0,screenY=0,width=100,height=100');
-    frame.resizeBy(400,600); frame.postMessage('preparing','https://turbo.cr/');
+    frame=window.open('https://turbo.cr/upload/api','turbo_upload','width=500,height=700,left=100,top=100');
+    // postMessage only after the popup has loaded, otherwise it's lost
+    const timer=setInterval(()=>{
+        try{frame.postMessage('preparing','https://turbo.cr/');clearInterval(timer);}catch(e){}
+    },300);
+    setTimeout(()=>clearInterval(timer),10000);
 }
 window.addEventListener('message',e=>{
     if(!e.origin.startsWith('https://turbo.cr'))return;
@@ -613,36 +617,29 @@ function scrollToPost(postId){
     el.classList.add('post-highlight');
     setTimeout(()=>el.classList.remove('post-highlight'),2000);
 }
-
-// ═══════════════════════════════════════════════════════════
-//  CONTENT PROCESSOR
-// ═══════════════════════════════════════════════════════════
 function processContent(content,allReplies){
-    // Map post ID → post ID (for scroll-to)
     const postIds=new Set((allReplies||[]).map(r=>r.id));
     let html=(content||'')
         .split('\n')
         .map(line=>line.startsWith('>')&&!line.startsWith('>>')?`<span class="greentext">${line}</span>`:line)
         .join('\n');
-    // >>numericPostId — clickable, scrolls to that post
-    html=html.replace(/>>(\d{10,14})/g,(match,pid)=>{
-        if(postIds.has(pid)) return`<a class="quote-link" onclick="scrollToPost('${pid}')">&#187;&#187;${pid}</a>`;
-        return`<span class="text-white font-bold">&gt;&gt;${pid}</span>`;
-    });
-    const embeds=[],previews=[];
+    html=html.replace(/>>(\d{10,14})/g,(match,pid)=>
+        postIds.has(pid)?`<a class="quote-link" onclick="scrollToPost('${pid}')">&#187;&#187;${pid}</a>`:`<span class="text-white font-bold">&gt;&gt;${pid}</span>`
+    );
+    const embeds=[];
+    // Link previews now inline — replaced in text position, not appended
     html=html.replace(/(https?:\/\/[^\s<"]+)/g,(match,url)=>{
         const isImg=url.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i);
         const isVid=url.match(/\.(mp4|webm|ogg)(\?.*)?$/i);
         if(isImg){
-            // Arrow overlaid on image, not in text
-            embeds.push(`<div class="post-img-wrap"><img src="${url}" data-full="${url}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${url}" target="_blank" rel="noopener" class="img-open-btn" title="Open full image">↗</a></div>`);
+            embeds.push(`<div class="post-img-wrap"><img src="${url}" data-full="${url}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${url}" target="_blank" rel="noopener" class="img-open-btn" title="Open">↗</a></div>`);
             return'';
         }
         if(isVid){embeds.push(`<video controls class="post-img"><source src="${url}"></video>`);return'';}
-        previews.push(renderLinkPreview(url));
-        return''; // no inline arrow — the card itself is the link
+        // Inline link preview card — rendered directly in place of the URL
+        return renderLinkPreview(url);
     });
-    return{html,embeds,previews};
+    return{html,embeds};
 }
 
 function toggleNsfw(el){el.classList.toggle('blurred');}
@@ -711,7 +708,6 @@ function renderBoard(threads,filterArchive=false){
     document.getElementById('mainFooter').style.display='block';
     document.getElementById('newRepliesBanner').style.display='none';
     _currentThreadId=null;
-    // Cache board index for client-side search
     _boardIndex=threads;
 
     const filtered=threads.filter(t=>filterArchive?t.locked:!t.locked);
@@ -721,7 +717,8 @@ function renderBoard(threads,filterArchive=false){
         document.getElementById('view-container').innerHTML=header+`<div class="text-center py-20 text-slate-600"><i class="fa-solid fa-ghost text-4xl mb-4 block"></i><p class="text-[11px] font-bold uppercase tracking-widest">${filterArchive?'No archived threads.':'No threads yet. Be the first.'}</p></div>`;
         return;
     }
-    document.getElementById('view-container').innerHTML=header+filtered.map((t,i)=>{
+
+    const makeCard=(t,i,showNum=true)=>{
         const mId=regMenu([
             {label:'Report Thread',fn:()=>handleAction('report',t.id)},
             {label:'Toggle Sticky',fn:()=>handleAction('sticky',t.id)},
@@ -731,7 +728,7 @@ function renderBoard(threads,filterArchive=false){
         ]);
         const op=t.op||t.replies?.[0]||{};
         return`<div onclick="window.location.hash='#thread/${t.id}'" class="relative glass glass-hover p-5 rounded-[2.5rem] flex gap-5 items-center cursor-pointer">
-            <div class="thread-number">#${i+1}</div>
+            ${showNum?`<div class="thread-number">#${i+1}</div>`:''}
             ${getThumb(op)}
             <div class="flex-1 min-w-0">
                 <div class="flex items-center mb-1 flex-wrap gap-1">
@@ -745,7 +742,22 @@ function renderBoard(threads,filterArchive=false){
             </div>
             <button onclick="openMenu(this,'${mId}')" class="p-3 text-slate-700 hover:text-white flex-shrink-0"><i class="fa-solid fa-ellipsis-v"></i></button>
         </div>`;
-    }).join('');
+    };
+
+    // Trending: top 5 by reply count (only on main board, not archive)
+    let trendingHtml='';
+    if(!filterArchive){
+        const trending=[...filtered].sort((a,b)=>(b.replyCount||0)-(a.replyCount||0)).slice(0,5);
+        if(trending.some(t=>(t.replyCount||0)>0)){
+            trendingHtml=`<div class="mb-8">
+                <div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">🔥 Trending</div>
+                <div class="space-y-3">${trending.map(t=>makeCard(t,0,false)).join('')}</div>
+            </div>
+            <div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">All Threads</div>`;
+        }
+    }
+
+    document.getElementById('view-container').innerHTML=header+trendingHtml+filtered.map((t,i)=>makeCard(t,i,true)).join('');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -790,7 +802,7 @@ function renderThread(t,page){
         ${paginationHtml}
         <div class="space-y-6 pb-24">
             ${replies.map((r,i)=>{
-                const{html:cHtml,embeds,previews}=processContent(r.content,replies);
+                const{html:cHtml,embeds}=processContent(r.content,replies);
                 const isOpt=!!r._optimistic;
                 const isFirstOnPage=currentPage===1&&i===0;
                 const myBacklinks=(backlinkMap[r.id]||[]).filter(b=>b.id!==r.id);
@@ -805,7 +817,7 @@ function renderThread(t,page){
                 ]);
                 const nsfwWrap=r.nsfw?`<div class="nsfw-wrap blurred" onclick="toggleNsfw(this)"><div class="nsfw-reveal"><span>⚠ NSFW — Click to reveal</span></div><div class="nsfw-inner">`:'';
                 const nsfwClose=r.nsfw?`</div></div>`:'';
-                return`<div id="post-${r.id}" class="glass p-7 rounded-[2.5rem] ${isOpt?'optimistic':''}" style="transition:border-color 0.4s,background 0.4s;">
+                return`<article id="post-${r.id}" class="glass p-7 rounded-[2.5rem] ${isOpt?'optimistic':''}" style="transition:border-color 0.4s,background 0.4s;">
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <span class="text-[10px] font-black text-slate-500 uppercase">ID:&nbsp;${r.userId}</span>
@@ -823,9 +835,8 @@ function renderThread(t,page){
                     <div class="text-slate-200 text-[14px] leading-relaxed whitespace-pre-wrap">${cHtml}</div>
                     ${embeds.join('')}
                     ${renderPostImages(r)}
-                    ${previews.join('')}
                     ${nsfwClose}
-                </div>`;
+                </article>`;
             }).join('')}
         </div>
         ${paginationHtml}
