@@ -252,9 +252,10 @@ Tips & features:
                 <div class="flex flex-wrap gap-2">
                     <input id="inpImageLink" type="url" placeholder="Paste image URL..." class="flex-1 p-3 rounded-xl text-xs font-bold min-w-[140px]">
                     <button onclick="document.getElementById('fileInput').click()" class="bg-slate-800 text-white px-3 py-2.5 rounded-xl text-[9px] font-black uppercase border border-white/10">Upload Images</button>
-                    <button onclick="prepareFrame()" class="bg-slate-700 text-white px-3 py-2.5 rounded-xl text-[9px] font-black uppercase">Upload Video</button>
+                    <button onclick="document.getElementById('videoInput').click()" class="bg-slate-700 text-white px-3 py-2.5 rounded-xl text-[9px] font-black uppercase">Upload Video</button>
                 </div>
                 <input type="file" id="fileInput" class="hidden" accept="image/*" multiple onchange="handleFileUpload(this)">
+                <input type="file" id="videoInput" class="hidden" accept="video/*" onchange="uploadVideo(this)">
                 <div id="uploadPreview"></div>
                 <p id="uploadStatus" class="text-[9px] mt-2 font-bold text-white hidden"></p>
             </div>
@@ -281,7 +282,7 @@ const POLL_MS    = 60000;
 // ═══════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════
-let isVerified=false, captchaToken=null, frame=null;
+let isVerified=false, captchaToken=null;
 const _cache={}, _etags={}, _pending={}, _ogCache={};
 let _uploadedImages=[];
 const _menuStore={}; let _menuCtr=0;
@@ -481,21 +482,25 @@ function onCaptchaSuccess(token){
     const btn=document.getElementById('submitBtn');
     btn.disabled=false; btn.classList.remove('opacity-50','cursor-not-allowed');
 }
-function prepareFrame(){
-    frame=window.open('https://turbo.cr/upload/api','turbo_upload','width=500,height=700,left=100,top=100');
-    // postMessage only after the popup has loaded, otherwise it's lost
-    const timer=setInterval(()=>{
-        try{frame.postMessage('preparing','https://turbo.cr/');clearInterval(timer);}catch(e){}
-    },300);
-    setTimeout(()=>clearInterval(timer),10000);
+async function uploadVideo(input){
+    const file=input.files[0]; if(!file)return;
+    if(file.size>209715200){showToast('Max file size is 200MB','error');return;}
+    const s=document.getElementById('uploadStatus');
+    s.innerText='Uploading video…'; s.classList.remove('hidden');
+    try{
+        const fd=new FormData();
+        fd.append('reqtype','fileupload');
+        fd.append('fileToUpload',file);
+        const res=await fetch('https://catbox.moe/user/api.php',{method:'POST',body:fd});
+        const url=(await res.text()).trim();
+        if(!url.startsWith('http')){showToast('Upload failed','error');s.classList.add('hidden');return;}
+        _uploadedImages.push({url,thumb:''});
+        updatePreview();
+        s.innerText='✓ Video ready'; setTimeout(()=>s.classList.add('hidden'),2000);
+        showToast('✓ Video uploaded','success');
+    }catch{s.innerText='Upload error.'; showToast('Upload error','error');}
+    input.value='';
 }
-window.addEventListener('message',e=>{
-    if(!e.origin.startsWith('https://turbo.cr'))return;
-    if(String(e.data).indexOf('close')!==-1){if(frame)frame.close();return;}
-    _uploadedImages.push({url:'turbo:'+e.data,thumb:''});
-    updatePreview(); showToast('✓ Video attached','success');
-    if(frame)frame.close();
-});
 function acceptAge(){localStorage.setItem('v3_age','t');document.getElementById('ageWall').remove();}
 if(localStorage.getItem('v3_age'))document.getElementById('ageWall').remove();
 
@@ -536,7 +541,9 @@ async function handleFileUpload(input){
 function updatePreview(){
     document.getElementById('uploadPreview').innerHTML=_uploadedImages.map((img,i)=>`
         <div class="preview-item">
-            ${img.url.startsWith('turbo:')?`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a1a"><i class="fa-solid fa-film text-slate-400"></i></div>`:`<img src="${img.thumb||img.url}" alt="">`}
+            ${(isCatboxVideo(img.url)||isVidUrl(img.url))
+                ?`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a1a"><i class="fa-solid fa-film text-slate-400"></i></div>`
+                :`<img src="${img.thumb||img.url}" alt="">`}
             <button onclick="removeImage(${i})">✕</button>
         </div>`).join('');
 }
@@ -617,26 +624,29 @@ function scrollToPost(postId){
     el.classList.add('post-highlight');
     setTimeout(()=>el.classList.remove('post-highlight'),2000);
 }
+const isCatboxVideo=url=>url.match(/files\.catbox\.moe\/.+\.(mp4|webm|ogg)(\?.*)?$/i);
+const isImgUrl=url=>url.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i);
+const isVidUrl=url=>url.match(/\.(mp4|webm|ogg)(\?.*)?$/i);
+
 function processContent(content,allReplies){
     const postIds=new Set((allReplies||[]).map(r=>r.id));
     let html=(content||'')
         .split('\n')
         .map(line=>line.startsWith('>')&&!line.startsWith('>>')?`<span class="greentext">${line}</span>`:line)
         .join('\n');
-    html=html.replace(/>>(\d{10,14})/g,(match,pid)=>
+    html=html.replace(/>>(\d{10,14})/g,(m,pid)=>
         postIds.has(pid)?`<a class="quote-link" onclick="scrollToPost('${pid}')">&#187;&#187;${pid}</a>`:`<span class="text-white font-bold">&gt;&gt;${pid}</span>`
     );
     const embeds=[];
-    // Link previews now inline — replaced in text position, not appended
-    html=html.replace(/(https?:\/\/[^\s<"]+)/g,(match,url)=>{
-        const isImg=url.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i);
-        const isVid=url.match(/\.(mp4|webm|ogg)(\?.*)?$/i);
-        if(isImg){
-            embeds.push(`<div class="post-img-wrap"><img src="${url}" data-full="${url}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${url}" target="_blank" rel="noopener" class="img-open-btn" title="Open">↗</a></div>`);
+    html=html.replace(/(https?:\/\/[^\s<"]+)/g,(m,url)=>{
+        if(isImgUrl(url)){
+            embeds.push(`<div class="post-img-wrap"><img src="${url}" data-full="${url}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${url}" target="_blank" rel="noopener" class="img-open-btn">↗</a></div>`);
             return'';
         }
-        if(isVid){embeds.push(`<video controls class="post-img"><source src="${url}"></video>`);return'';}
-        // Inline link preview card — rendered directly in place of the URL
+        if(isCatboxVideo(url)||isVidUrl(url)){
+            embeds.push(`<video controls class="post-img" style="max-width:100%;margin-top:12px;border-radius:12px;"><source src="${url}"></video>`);
+            return'';
+        }
         return renderLinkPreview(url);
     });
     return{html,embeds};
@@ -645,18 +655,20 @@ function processContent(content,allReplies){
 function toggleNsfw(el){el.classList.toggle('blurred');}
 
 function renderPostImages(post){
-    const images=(post.images&&post.images.length)?post.images:(post.image?[post.image]:[]);
+    const images=(post.images?.length)?post.images:(post.image?[post.image]:[]);
     const thumbs=post.thumbs||[];
     if(!images.length)return'';
     return`<div class="img-grid">${images.map((src,i)=>{
-        if(src.startsWith('turbo:'))return`<div class="video-container"><iframe src="https://turbo.cr/e/${src.replace('turbo:','')}" allowfullscreen></iframe></div>`;
-        return`<div class="post-img-wrap"><img src="${thumbs[i]||src}" data-full="${src}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${src}" target="_blank" rel="noopener" class="img-open-btn" title="Open full image">↗</a></div>`;
+        if(isCatboxVideo(src)||isVidUrl(src))
+            return`<video controls class="post-img" style="max-width:100%;max-height:none;border-radius:12px;"><source src="${src}"></video>`;
+        return`<div class="post-img-wrap"><img src="${thumbs[i]||src}" data-full="${src}" class="post-img" onclick="expandImg(this)" loading="lazy"><a href="${src}" target="_blank" rel="noopener" class="img-open-btn">↗</a></div>`;
     }).join('')}</div>`;
 }
 function getThumb(op){
     if(!op||(!op.image&&!op.images?.length))return`<div class="thumb-box flex items-center justify-center text-[10px] text-slate-700 font-black">TXT</div>`;
-    if(op.image?.startsWith('turbo:'))return`<div class="thumb-box flex items-center justify-center"><i class="fa-solid fa-film text-slate-400 text-lg"></i></div>`;
-    return`<div class="thumb-box"><img src="${op.thumb||op.image}" class="thumb-img" loading="lazy" onerror="this.src='https://placehold.co/85x85?text=IMG'"></div>`;
+    const src=op.image||op.images?.[0]||'';
+    if(isCatboxVideo(src)||isVidUrl(src))return`<div class="thumb-box flex items-center justify-center"><i class="fa-solid fa-film text-slate-400 text-lg"></i></div>`;
+    return`<div class="thumb-box"><img src="${op.thumb||src}" class="thumb-img" loading="lazy" onerror="this.src='https://placehold.co/85x85?text=IMG'"></div>`;
 }
 
 // ═══════════════════════════════════════════════════════════
