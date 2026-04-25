@@ -133,13 +133,7 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
   <button onclick="adminSetSiteBanner()">📢 Set Site Banner</button>
   <button onclick="adminClearSiteBanner()" class="warn">🗑 Clear Site Banner</button>
 </div>
-<div id="ageWall" class="fixed inset-0 bg-black z-[500] flex items-center justify-center p-6 text-center">
-  <div class="max-w-sm w-full">
-    <h2 class="text-white font-black text-2xl tracking-tighter mb-2">ClassicInternet.github.io/FORUM</h2>
-    <p class="text-slate-500 mb-10 text-[10px] tracking-[0.3em] uppercase opacity-50 font-bold">18+ Only // Access Restricted</p>
-    <button onclick="acceptAge()" class="bg-white text-black w-full py-5 rounded-2xl font-black tracking-widest hover:scale-105 transition-all shadow-lg">I AM 18+ / ENTER</button>
-  </div>
-</div>
+
 <div class="max-w-2xl mx-auto px-4">
   <header class="py-10">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -300,8 +294,7 @@ async function runSearch(q){
 }
 document.addEventListener('click',e=>{if(!document.getElementById('searchBar').contains(e.target))closeSearch();});
 function onCaptchaSuccess(token){isVerified=true;captchaToken=token;const b=document.getElementById('submitBtn');b.disabled=false;b.classList.remove('opacity-50','cursor-not-allowed');}
-function acceptAge(){localStorage.setItem('v3_age','t');document.getElementById('ageWall').remove();}
-if(localStorage.getItem('v3_age'))document.getElementById('ageWall').remove();
+
 // GitHub Pages 404 SPA redirect
 (()=>{const r=sessionStorage.getItem('spa_redirect');if(r){sessionStorage.removeItem('spa_redirect');history.replaceState(null,null,r);}})();
 // Backward-compat: old hash URLs → new path
