@@ -1,18 +1,23 @@
-name: Sitemap
+name: Sync Sitemap
 on:
   schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
-permissions:
-  contents: write
+    - cron: '0 0 * * *' # Runs daily at midnight
+  workflow_dispatch: # Allows manual trigger
+
 jobs:
-  sitemap:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: curl -s https://classicforum.indiachan.workers.dev/sitemap.xml > sitemap.xml
-      - run: |
-          git config user.email "bot@github.com"
-          git config user.name "SitemapBot"
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Fetch Sitemap from Worker
+        run: curl https://classicforum.indiachan.workers.dev/sitemap.xml -o sitemap.xml
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name "Sitemap-Bot"
+          git config --global user.email "bot@indiachan.com"
           git add sitemap.xml
-          git diff --staged --quiet || git commit -m "chore: update sitemap" && git push
+          git commit -m "Update sitemap from Worker" || exit 0
+          git push
