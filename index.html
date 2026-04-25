@@ -143,7 +143,7 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
 <div class="max-w-2xl mx-auto px-4">
   <header class="py-10">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div onclick="window.location.hash=''" class="cursor-pointer group min-w-0 flex-1">
+      <div onclick="navTo('/forum/')" class="cursor-pointer group min-w-0 flex-1">
         <h1 class="text-white font-black text-[clamp(14px,4vw,20px)] tracking-tighter group-hover:text-slate-400 transition-colors break-all leading-tight">ClassicInternet.github.io/FORUM</h1>
         <span class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em]">It's a meeting place for the community.</span>
       </div>
@@ -160,7 +160,7 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
   <footer id="mainFooter" class="mt-20 py-10 border-t border-white/5 text-center">
     <div class="flex justify-center gap-6 mb-8 flex-wrap">
       <span class="text-[10px] font-black uppercase text-slate-600 tracking-widest">Est. 2026</span>
-      <a href="#archive" class="text-[10px] font-black uppercase text-white tracking-widest border-b border-white/20">The Archive</a>
+      <a href="/forum/archive" class="text-[10px] font-black uppercase text-white tracking-widest border-b border-white/20">The Archive</a>
       <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">ClassicInternetForum</span>
     </div>
     <p class="text-[11px] text-slate-500 leading-relaxed max-w-md mx-auto mb-6">ClassicInternetForum is a law-abiding platform. All posts are user-generated.</p>
@@ -220,7 +220,11 @@ const _cache={},_etags={},_pending={},_ogCache={};
 let _imgs=[];
 const _ms={};let _mc=0;
 const reg=items=>{const id='mx'+(++_mc);_ms[id]=items;return id;};
-let _tid=null,_trc=0,_pg=1,_bi=null;
+let _tid=null,_tslug=null,_trc=0,_pg=1,_bi=null;
+const BASE='/forum';
+const makeSlug=(title,id)=>(title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')+'-'+id;
+const idFromSlug=s=>s.split('-').pop();
+const navTo=path=>{history.pushState({},null,path);router();};
 const cGet=k=>{const e=_cache[k];return e&&Date.now()-e.ts<CACHE_TTL?e.d:null;};
 const cSet=(k,d)=>{_cache[k]={d,ts:Date.now()};};
 const cDel=k=>delete _cache[k];
@@ -285,12 +289,12 @@ async function runSearch(q){
   let h='';
   if(tr.length){
     h+=`<div style="padding:8px 16px 4px;font-size:8px;font-weight:900;color:#444;text-transform:uppercase">Replies</div>`;
-    h+=tr.slice(0,20).map(r=>`<div class="search-result-item" onclick="window.location.hash='#thread/${r.threadId}';setTimeout(()=>scrollToPost('${r.id}'),600);closeSearch()"><div class="search-result-title">${hl(r.threadTitle,q)} · Reply #${r.seq}</div><div class="search-result-snippet">${hl(r.content.slice(0,120),q)}</div></div>`).join('');
+    h+=tr.slice(0,20).map(r=>{const sl=makeSlug(r.threadTitle,r.threadId);return`<div class="search-result-item" onclick="navTo('${BASE}/thread/${sl}');setTimeout(()=>scrollToPost('${r.id}'),600);closeSearch()"><div class="search-result-title">${hl(r.threadTitle,q)} · Reply #${r.seq}</div><div class="search-result-snippet">${hl(r.content.slice(0,120),q)}</div></div>`;}).join('');
   }
   if(br.length){
     if(tr.length)h+=`<div style="border-top:1px solid rgba(255,255,255,.05)"></div>`;
     h+=`<div style="padding:8px 16px 4px;font-size:8px;font-weight:900;color:#444;text-transform:uppercase">Threads</div>`;
-    h+=br.map(t=>`<div class="search-result-item" onclick="window.location.hash='#thread/${t.id}';closeSearch()"><div class="search-result-title">${hl(t.title||'Anonymous',q)}</div><div class="search-result-snippet">${hl((t.op?.content||'').slice(0,120),q)}</div></div>`).join('');
+    h+=br.map(t=>`<div class="search-result-item" onclick="navTo('${BASE}/thread/${makeSlug(t.title,t.id)}');closeSearch()"><div class="search-result-title">${hl(t.title||'Anonymous',q)}</div><div class="search-result-snippet">${hl((t.op?.content||'').slice(0,120),q)}</div></div>`).join('');
   }
   sr.innerHTML=h;
 }
@@ -298,6 +302,11 @@ document.addEventListener('click',e=>{if(!document.getElementById('searchBar').c
 function onCaptchaSuccess(token){isVerified=true;captchaToken=token;const b=document.getElementById('submitBtn');b.disabled=false;b.classList.remove('opacity-50','cursor-not-allowed');}
 function acceptAge(){localStorage.setItem('v3_age','t');document.getElementById('ageWall').remove();}
 if(localStorage.getItem('v3_age'))document.getElementById('ageWall').remove();
+// GitHub Pages 404 SPA redirect
+(()=>{const r=sessionStorage.getItem('spa_redirect');if(r){sessionStorage.removeItem('spa_redirect');history.replaceState(null,null,r);}})();
+// Backward-compat: old hash URLs → new path
+if(location.hash.startsWith('#thread/')){const p=location.hash.replace('#thread/','').split('/');history.replaceState(null,null,`${BASE}/thread/thread-${p[0]}${p[1]?'?page='+p[1]:''}`);}
+else if(location.hash==='#archive'){history.replaceState(null,null,`${BASE}/archive`);}
 document.getElementById('inpContent').addEventListener('input',function(){const n=this.value.length,el=document.getElementById('charCount');el.textContent=n+' / 2000';el.style.color=n>1800?'#f87171':n>1500?'#fbbf24':'';});
 document.getElementById('inpContent').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')submitPost();});
 async function handleFileUpload(inp){
@@ -415,12 +424,12 @@ function renderBoard(threads,archive=false){
   document.getElementById('newRepliesBanner').style.display='none';
   _tid=null;_bi=threads;
   const filtered=threads.filter(t=>archive?t.locked:!t.locked);
-  const hdr=archive?`<div class="flex flex-col gap-2 mb-6"><button onclick="window.location.hash=''" class="w-fit text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return to Board</button><div class="text-[10px] font-black uppercase text-white tracking-[0.3em]">Viewing: The Archive</div></div>`:'';
+  const hdr=archive?`<div class="flex flex-col gap-2 mb-6"><button onclick="navTo('${BASE}/')" class="w-fit text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return to Board</button><div class="text-[10px] font-black uppercase text-white tracking-[0.3em]">Viewing: The Archive</div></div>`:'';
   if(!filtered.length){document.getElementById('view-container').innerHTML=hdr+`<div class="text-center py-20 text-slate-600"><i class="fa-solid fa-ghost text-4xl mb-4 block"></i><p class="text-[11px] font-bold uppercase tracking-widest">${archive?'No archived threads.':'No threads yet. Be the first.'}</p></div>`;return;}
   const mkCard=(t,i,num=true)=>{
     const mId=reg([{label:'Report Thread',fn:()=>act('report',t.id)},{label:'Toggle Sticky',fn:()=>act('sticky',t.id)},{label:t.locked?'Unlock':'Lock',fn:()=>act('lock',t.id)},{label:'Set Thread Banner',warn:true,fn:()=>adminSetThreadBanner(t.id)},{label:'Delete',danger:true,fn:()=>act('delete',t.id)}]);
     const op=t.op||t.replies?.[0]||{};
-    return`<div onclick="window.location.hash='#thread/${t.id}'" class="relative glass glass-hover p-5 rounded-[2.5rem] flex gap-5 items-center cursor-pointer">${num?`<div class="thread-number">#${i+1}</div>`:''}<div class="flex-shrink-0">${getThumb(op)}</div><div class="flex-1 min-w-0"><div class="flex items-center mb-1 flex-wrap gap-1">${t.sticky?'<span class="sticky-tag">STICKY</span>':''}${t.locked?'<i class="fa-solid fa-lock text-[10px] text-red-500 mr-1"></i>':''}${op.nsfw?'<span class="nsfw-tag">NSFW</span>':''}<h2 class="text-sm font-black text-white uppercase tracking-tight truncate">${esc(t.title||'Anonymous')}</h2><span class="ml-2 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.replyCount||0}</span><span class="ml-1 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0}</span></div><p class="text-slate-500 text-[11px] line-clamp-2 opacity-80">${esc(op.content||'')}</p></div><button onclick="openMenu(this,'${mId}')" class="p-3 text-slate-700 hover:text-white flex-shrink-0"><i class="fa-solid fa-ellipsis-v"></i></button></div>`;
+    return`<div onclick="navTo('${BASE}/thread/${makeSlug(t.title,t.id)}')" class="relative glass glass-hover p-5 rounded-[2.5rem] flex gap-5 items-center cursor-pointer">${num?`<div class="thread-number">#${i+1}</div>`:''}<div class="flex-shrink-0">${getThumb(op)}</div><div class="flex-1 min-w-0"><div class="flex items-center mb-1 flex-wrap gap-1">${t.sticky?'<span class="sticky-tag">STICKY</span>':''}${t.locked?'<i class="fa-solid fa-lock text-[10px] text-red-500 mr-1"></i>':''}${op.nsfw?'<span class="nsfw-tag">NSFW</span>':''}<h2 class="text-sm font-black text-white uppercase tracking-tight truncate">${esc(t.title||'Anonymous')}</h2><span class="ml-2 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.replyCount||0}</span><span class="ml-1 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0}</span></div><p class="text-slate-500 text-[11px] line-clamp-2 opacity-80">${esc(op.content||'')}</p></div><button onclick="openMenu(this,'${mId}')" class="p-3 text-slate-700 hover:text-white flex-shrink-0"><i class="fa-solid fa-ellipsis-v"></i></button></div>`;
   };
   let trendHtml='';
   if(!archive){const tr=[...filtered].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);if(tr.some(t=>(t.views||0)>0))trendHtml=`<div class="mb-8"><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">🔥 Trending</div><div class="space-y-3">${tr.map(t=>mkCard(t,0,false)).join('')}</div></div><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">All Threads</div>`;}
@@ -431,7 +440,7 @@ function renderThread(t,page){
   document.title=`${esc(t.title)} | ClassicInternetForum`;
   document.getElementById('mainFooter').style.display='none';
   document.getElementById('newRepliesBanner').style.display='none';
-  _tid=String(t.id);_trc=t.totalReplies||t.replies?.length||0;_pg=page||t.page||1;
+  _tid=String(t.id);_tslug=makeSlug(t.title,t.id);_trc=t.totalReplies||t.replies?.length||0;_pg=page||t.page||1;
   const tot=t.totalPages||1,cur=t.page||1;
   const pending=(_pending[String(t.id)]||[]);
   const replies=[...(t.replies||[])];
@@ -440,7 +449,7 @@ function renderThread(t,page){
   const pgHtml=tot>1?`<div class="flex items-center justify-center gap-2 py-6 flex-wrap"><button class="page-btn" onclick="goPage(1)" ${cur===1?'disabled':''}>« First</button><button class="page-btn" onclick="goPage(${cur-1})" ${cur===1?'disabled':''}>‹ Prev</button>${Array.from({length:tot},(_,i)=>i+1).filter(p=>Math.abs(p-cur)<=2||p===1||p===tot).map((p,ix,arr)=>(ix>0&&p-arr[ix-1]>1?`<span class="text-slate-700 font-black text-xs px-1">…</span>`:'')+`<button class="page-btn ${p===cur?'active':''}" onclick="goPage(${p})">${p}</button>`).join('')}<button class="page-btn" onclick="goPage(${cur+1})" ${cur===tot?'disabled':''}>Next ›</button><button class="page-btn" onclick="goPage(${tot})" ${cur===tot?'disabled':''}>Last »</button></div><div class="text-center text-[9px] font-bold text-slate-600 uppercase mb-4">Page ${cur} of ${tot} · ${t.totalReplies} replies</div>`:'';
   const bannerHtml=t.banner?`<div class="thread-banner" id="tBanner"><div class="thread-banner-text"><i class="fa-solid fa-bullhorn mr-2 opacity-70"></i>${esc(t.banner)}</div><button class="thread-banner-close" onclick="document.getElementById('tBanner').remove()">✕</button></div>`:'';
   document.getElementById('view-container').innerHTML=`
-    <button onclick="window.location.hash=''" class="mb-6 text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return</button>
+    <button onclick="navTo('${BASE}/')" class="mb-6 text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return</button>
     <h1 class="text-xl font-black text-white mb-4 uppercase tracking-tighter">${esc(t.title)} ${t.locked?'<i class="fa-solid fa-lock text-sm text-red-500 ml-2"></i>':''}</h1><div class="flex gap-3 mb-6"><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0} views</span><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.totalReplies||t.replies?.length||0} replies</span></div>
     ${bannerHtml}${pgHtml}
     <div class="space-y-6 pb-24">
@@ -485,13 +494,13 @@ function renderThread(t,page){
   `;
   observeLazyImgs();
 }
-function goPage(p){if(_tid)window.location.hash=`#thread/${_tid}/${p}`;}
+function goPage(p){if(_tid&&_tslug){history.pushState({},'',`${BASE}/thread/${_tslug}${p>1?'?page='+p:''}`);router();}}
 function quotePost(pid){document.getElementById('inpContent').value+=`>>${pid}\n`;openModal();document.getElementById('inpContent').focus();}
 async function submitPost(){
   if(!isVerified||!captchaToken){toast('Please complete the captcha.','error');return;}
   const btn=document.getElementById('submitBtn');btn.disabled=true;btn.innerText='TRANSMITTING…';
-  const h=window.location.hash,isReply=h.startsWith('#thread/');
-  const parts=h.replace('#thread/','').split('/'),threadId=isReply?parts[0]:null;
+  const path=window.location.pathname,isReply=path.startsWith(BASE+'/thread/');
+  const slug=isReply?path.replace(BASE+'/thread/','').split('?')[0]:'',threadId=isReply?idFromSlug(slug):null;
   const content=document.getElementById('inpContent').value;
   const nsfw=document.getElementById('inpNsfw').checked;
   const title=document.getElementById('inpTitle').value||'Anonymous';
@@ -511,7 +520,7 @@ async function submitPost(){
       if(!_pending[threadId])_pending[threadId]=[];_pending[threadId].push(opt);
       const c=cGet(`?id=${threadId}&page=${_pg}`);if(c)renderThread(c,_pg);
       setTimeout(async()=>{const f=await api(`?id=${threadId}&page=${_pg}`);if(f){_pending[threadId]=[];renderThread(f,_pg);}},3000);
-    }else{toast('Thread posted! Redirecting…','success');const nid=res.threadId;await router();if(nid)setTimeout(()=>{window.location.hash=`#thread/${nid}`;},500);}
+    }else{toast('Thread posted! Redirecting…','success');const nid=res.threadId;const nd=await api('');if(nd){const nt=nd.find(x=>String(x.id)===String(nid));if(nt)setTimeout(()=>navTo(`${BASE}/thread/${makeSlug(nt.title,nid)}`),500);}}
   }else{btn.disabled=false;btn.innerText='Transmit Message';toast('Failed: '+(res?.error||'Try again.'),'error');}
 }
 async function editPost(tId,rId){const p=prompt('Admin Pass:');if(!p)return;cDel(`?id=${tId}&page=${_pg}`);const t=await api(`?id=${tId}&page=${_pg}`);if(!t)return;const post=t.replies.find(r=>r.id===rId);if(!post)return;const nc=prompt('Edit content:',post.content);if(nc===null||nc===post.content)return;const r=await api(`?id=${tId}&replyId=${rId}`,'PATCH',{action:'edit',newContent:nc},{'X-Admin-Pass':p});if(r){cClr();toast('Edited.','success');router();}else toast('Failed.','error');}
@@ -531,21 +540,22 @@ function openModal(){document.getElementById('postModal').classList.remove('hidd
 function closeModal(){document.getElementById('postModal').classList.add('hidden');}
 async function router(silent=false){
   closeMenu();closeSearch();
-  const h=window.location.hash;
-  if(h.startsWith('#thread/')){
-    const parts=h.replace('#thread/','').split('/'),threadId=parts[0],page=parseInt(parts[1]||'1');
+  const path=window.location.pathname,sp=new URLSearchParams(window.location.search);
+  const m=path.match(/\/thread\/([^/?]+)/);
+  if(m){
+    const threadId=idFromSlug(m[1]),page=parseInt(sp.get('page')||'1');
     const ck=`?id=${threadId}&page=${page}`;
     const data=await api(ck);
     if(data){if(silent){const nc=data.totalReplies||data.replies?.length||0;if(nc>_trc){showNRB(nc-_trc);cSet(ck,data);}}else renderThread(data,page);}
-  }else if(h==='#archive'){const d=await api('');if(!silent)renderBoard(d||[],true);}
+  }else if(path.endsWith('/archive')){const d=await api('');if(!silent)renderBoard(d||[],true);}
   else{const d=await api('');if(!silent)renderBoard(d||[],false);}
 }
 const _imgObs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){const el=e.target;if(el.dataset.src){el.src=el.dataset.src;delete el.dataset.src;}_imgObs.unobserve(el);}});
 },{rootMargin:'200px'});
 function observeLazyImgs(){document.querySelectorAll('img.lazyimg').forEach(el=>_imgObs.observe(el));}
-setInterval(()=>{if(document.hidden)return;cClr();router(window.location.hash.startsWith('#thread/'));},POLL_MS);
-window.onhashchange=()=>{cClr();router();};
+setInterval(()=>{if(document.hidden)return;cClr();router(window.location.pathname.includes('/thread/'));},POLL_MS);
+window.onpopstate=()=>{cClr();router();};
 loadSiteBanner();router();
 </script>
 </body>
