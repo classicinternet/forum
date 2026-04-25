@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: curl -s https://classicforum.indiachan.workers.dev/sitemap.xml > forum/sitemap.xml
+      - run: curl -s https://classicforum.indiachan.workers.dev/sitemap.xml > sitemap.xml
       - run: |
           git config user.email "bot@github.com"
           git config user.name "SitemapBot"
