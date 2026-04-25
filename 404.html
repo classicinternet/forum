@@ -1,4 +1,4 @@
 <!DOCTYPE html><html><head><script>
-sessionStorage.setItem('spa_redirect',location.pathname+location.search);
-location.replace('/forum/');
+if(location.pathname.endsWith('.xml')){location.replace('https://classicforum.indiachan.workers.dev/sitemap.xml');}
+else{sessionStorage.setItem('spa_redirect',location.pathname+location.search);location.replace('/forum/');}
 </script></head></html>
