@@ -109,6 +109,15 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
 .page-btn:disabled{opacity:.3;cursor:not-allowed}
 @keyframes pulse-border{0%,100%{border-color:rgba(255,255,255,.1)}50%{border-color:rgba(255,255,255,.4)}}
 .optimistic{animation:pulse-border 1.5s ease infinite;opacity:.65}
+.flair-ent{background:#7c3aed;color:#fff}.flair-pol{background:#dc2626;color:#fff}.flair-gen{background:#2563eb;color:#fff}.flair-media{background:#d97706;color:#fff}.flair-tech{background:#059669;color:#fff}
+.flair-tag{padding:2px 7px;border-radius:4px;font-size:8px;font-weight:900;margin-right:6px;text-transform:uppercase}
+.tab-btn{padding:7px 16px;border-radius:999px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;border:1px solid rgba(255,255,255,.1);background:transparent;color:#555;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+.tab-btn.active{background:#fff;color:#000;border-color:#fff}
+.sort-sel{background:#111;border:1px solid rgba(255,255,255,.1);color:#fff;font-size:9px;font-weight:900;padding:7px 12px;border-radius:999px;cursor:pointer;outline:none}
+.storage-bar{height:4px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+.storage-bar-fill{height:100%;border-radius:999px;transition:width .6s ease;background:#fff}
+.storage-bar-fill.warn{background:#fbbf24}.storage-bar-fill.danger{background:#f87171}
 </style>
 </head>
 <body class="pb-32">
@@ -149,6 +158,20 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
       <button id="searchClear" onclick="clearSearch()">✕</button>
       <div id="searchResults"></div>
     </div>
+    <div class="mt-4 flex items-center gap-2 overflow-x-auto pb-1" style="scrollbar-width:none">
+      <button class="tab-btn active" onclick="setFlair(null,this)">All</button>
+      <button class="tab-btn" onclick="setFlair('ent',this)">Ent</button>
+      <button class="tab-btn" onclick="setFlair('pol',this)">Pol</button>
+      <button class="tab-btn" onclick="setFlair('gen',this)">Gen</button>
+      <button class="tab-btn" onclick="setFlair('media',this)">Media</button>
+      <button class="tab-btn" onclick="setFlair('tech',this)">Tech</button>
+      <div class="flex-1"></div>
+      <select class="sort-sel" onchange="setSort(this.value)" id="sortSel">
+        <option value="latest">Latest</option>
+        <option value="views">Views</option>
+        <option value="replies">Replies</option>
+      </select>
+    </div>
   </header>
   <div id="view-container" class="space-y-6"></div>
   <footer id="mainFooter" class="mt-20 py-10 border-t border-white/5 text-center">
@@ -158,6 +181,11 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
       <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">ClassicInternetForum</span>
     </div>
     <p class="text-[11px] text-slate-500 leading-relaxed max-w-md mx-auto mb-6">ClassicInternetForum is a law-abiding platform. All posts are user-generated.</p>
+    <div class="glass p-4 rounded-2xl inline-block mb-4 w-full max-w-xs">
+      <div class="flex justify-between items-center mb-1"><span class="text-[9px] font-black text-slate-500 uppercase tracking-tighter">Storage Health</span><span id="storageLabel" class="text-[9px] font-black text-slate-500">—</span></div>
+      <div class="storage-bar"><div class="storage-bar-fill" id="storageBarFill" style="width:0%"></div></div>
+      <div class="flex justify-between mt-2"><span id="storageThreads" class="text-[8px] text-slate-600 font-bold">— threads</span><span id="storageCapacity" class="text-[8px] text-slate-600 font-bold">— max</span></div>
+    </div>
     <div class="glass p-4 rounded-2xl inline-block mb-6">
       <span class="text-[9px] font-bold text-slate-500 block mb-1 uppercase tracking-tighter">Takedown / Content Removal</span>
       <a href="mailto:JefferyEpsteinMossad@proton.me" class="text-[10px] font-black text-white hover:text-slate-400 transition-colors">JefferyEpsteinMossad@proton.me</a>
@@ -199,6 +227,17 @@ Tips:
         <input type="checkbox" id="inpNsfw">
         <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Mark as NSFW <span class="text-red-400">(blurs content)</span></span>
       </label>
+      <div class="mb-4">
+        <p class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">Flair</p>
+        <div class="flex flex-wrap gap-2">
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="" checked class="accent-white"><span class="text-[10px] font-bold text-slate-400">None</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="ent" class="accent-purple-500"><span class="flair-tag flair-ent">Ent</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="pol" class="accent-red-500"><span class="flair-tag flair-pol">Pol</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="gen" class="accent-blue-500"><span class="flair-tag flair-gen">Gen</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="media" class="accent-yellow-500"><span class="flair-tag flair-media">Media</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="tech" class="accent-green-500"><span class="flair-tag flair-tech">Tech</span></label>
+        </div>
+      </div>
       <div class="flex justify-center mb-4">
         <div class="cf-turnstile" data-sitekey="0x4AAAAAAC_1Q9M2a470-hnw" data-callback="onCaptchaSuccess"></div>
       </div>
@@ -214,7 +253,7 @@ const _cache={},_etags={},_pending={},_ogCache={};
 let _imgs=[];
 const _ms={};let _mc=0;
 const reg=items=>{const id='mx'+(++_mc);_ms[id]=items;return id;};
-let _tid=null,_tslug=null,_trc=0,_pg=1,_bi=null;
+let _tid=null,_tslug=null,_trc=0,_pg=1,_bi=null,_flair=null,_sort='latest';
 const BASE='/forum';
 const makeSlug=(title,id)=>(title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')+'-'+id;
 const idFromSlug=s=>s.split('-').pop();
@@ -225,6 +264,21 @@ const cDel=k=>delete _cache[k];
 const cClr=()=>Object.keys(_cache).forEach(k=>delete _cache[k]);
 let _tt;
 const toast=(msg,type='info')=>{const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;clearTimeout(_tt);_tt=setTimeout(()=>{el.className='';},3200);};
+const FLAIRS={ent:'#7c3aed',pol:'#dc2626',gen:'#2563eb',media:'#d97706',tech:'#059669'};
+const flairTag=f=>f?`<span class="flair-tag flair-${f}">${f}</span>`:'';
+function setFlair(f,btn){_flair=f;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(f)navTo(`${BASE}/${f}/`);else navTo(`${BASE}/`);cClr();}
+function setSort(v){_sort=v;cClr();router();}
+async function loadStorage(){
+  try{
+    const r=await fetch(`${W}api/storage`);const d=await r.json();
+    const pct=Math.round(d.used_bytes/d.total_limit*100);
+    const fill=document.getElementById('storageBarFill');
+    fill.style.width=pct+'%';fill.className='storage-bar-fill'+(pct>95?' danger':pct>80?' warn':'');
+    document.getElementById('storageLabel').textContent=pct+'%';
+    document.getElementById('storageThreads').textContent=d.thread_count+' threads';
+    document.getElementById('storageCapacity').textContent=d.max_capacity+' max';
+  }catch{}
+}
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const BANNER_KEY='cif_banner_ts';
 async function loadSiteBanner(){
@@ -422,7 +476,7 @@ function renderBoard(threads,archive=false){
   const mkCard=(t,i,num=true)=>{
     const mId=reg([{label:'Report Thread',fn:()=>act('report',t.id)},{label:'Toggle Sticky',fn:()=>act('sticky',t.id)},{label:t.locked?'Unlock':'Lock',fn:()=>act('lock',t.id)},{label:'Set Thread Banner',warn:true,fn:()=>adminSetThreadBanner(t.id)},{label:'Delete',danger:true,fn:()=>act('delete',t.id)}]);
     const op=t.op||t.replies?.[0]||{};
-    return`<div onclick="navTo('${BASE}/thread/${makeSlug(t.title,t.id)}')" class="relative glass glass-hover p-5 rounded-[2.5rem] flex gap-5 items-center cursor-pointer">${num?`<div class="thread-number">#${i+1}</div>`:''}<div class="flex-shrink-0">${getThumb(op)}</div><div class="flex-1 min-w-0"><div class="flex items-center mb-1 flex-wrap gap-1">${t.sticky?'<span class="sticky-tag">STICKY</span>':''}${t.locked?'<i class="fa-solid fa-lock text-[10px] text-red-500 mr-1"></i>':''}${op.nsfw?'<span class="nsfw-tag">NSFW</span>':''}<h2 class="text-sm font-black text-white uppercase tracking-tight truncate">${esc(t.title||'Anonymous')}</h2><span class="ml-2 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.replyCount||0}</span><span class="ml-1 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0}</span></div><p class="text-slate-500 text-[11px] line-clamp-2 opacity-80">${esc(op.content||'')}</p></div><button onclick="openMenu(this,'${mId}')" class="p-3 text-slate-700 hover:text-white flex-shrink-0"><i class="fa-solid fa-ellipsis-v"></i></button></div>`;
+    return`<div onclick="navTo('${BASE}/thread/${makeSlug(t.title,t.id)}')" class="relative glass glass-hover p-5 rounded-[2.5rem] flex gap-5 items-center cursor-pointer">${num?`<div class="thread-number">#${i+1}</div>`:''}<div class="flex-shrink-0">${getThumb(op)}</div><div class="flex-1 min-w-0"><div class="flex items-center mb-1 flex-wrap gap-1">${t.sticky?'<span class="sticky-tag">STICKY</span>':''}${t.locked?'<i class="fa-solid fa-lock text-[10px] text-red-500 mr-1"></i>':''}${op.nsfw?'<span class="nsfw-tag">NSFW</span>':''}${flairTag(t.flair)}<h2 class="text-sm font-black text-white uppercase tracking-tight truncate">${esc(t.title||'Anonymous')}</h2><span class="ml-2 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.replyCount||0}</span><span class="ml-1 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0}</span></div><p class="text-slate-500 text-[11px] line-clamp-2 opacity-80">${esc(op.content||'')}</p></div><button onclick="openMenu(this,'${mId}')" class="p-3 text-slate-700 hover:text-white flex-shrink-0"><i class="fa-solid fa-ellipsis-v"></i></button></div>`;
   };
   let trendHtml='';
   if(!archive){const tr=[...filtered].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);if(tr.some(t=>(t.views||0)>0))trendHtml=`<div class="mb-8"><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">🔥 Trending</div><div class="space-y-3">${tr.map(t=>mkCard(t,0,false)).join('')}</div></div><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">All Threads</div>`;}
@@ -500,7 +554,8 @@ async function submitPost(){
   const urlImg=document.getElementById('inpImageLink').value.trim();
   const all=[..._imgs];if(urlImg&&!all.find(x=>x.url===urlImg))all.push({url:urlImg,thumb:urlImg});
   const imgUrls=all.map(x=>x.url),thumbUrls=all.map(x=>x.thumb||x.url);
-  const res=await api('','POST',{type:isReply?'reply':'thread',threadId,title,content,nsfw,image:imgUrls[0]||'',thumb:thumbUrls[0]||'',images:imgUrls,thumbs:thumbUrls,token:captchaToken});
+  const flair=document.querySelector('input[name="flair"]:checked')?.value||null;
+  const res=await api('','POST',{type:isReply?'reply':'thread',threadId,title,content,nsfw,flair:flair||undefined,image:imgUrls[0]||'',thumb:thumbUrls[0]||'',images:imgUrls,thumbs:thumbUrls,token:captchaToken});
   if(res?.success){
     ['inpTitle','inpContent'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('inpNsfw').checked=false;
@@ -534,14 +589,22 @@ function closeModal(){document.getElementById('postModal').classList.add('hidden
 async function router(silent=false){
   closeMenu();closeSearch();
   const path=window.location.pathname,sp=new URLSearchParams(window.location.search);
-  const m=path.match(/\/thread\/([^/?]+)/);
-  if(m){
-    const threadId=idFromSlug(m[1]),page=parseInt(sp.get('page')||'1');
+  const tm=path.match(/\/thread\/([^/?]+)/);
+  if(tm){
+    const threadId=idFromSlug(tm[1]),page=parseInt(sp.get('page')||'1');
     const ck=`?id=${threadId}&page=${page}`;
     const data=await api(ck);
     if(data){if(silent){const nc=data.totalReplies||data.replies?.length||0;if(nc>_trc){showNRB(nc-_trc);cSet(ck,data);}}else renderThread(data,page);}
   }else if(path.endsWith('/archive')){const d=await api('');if(!silent)renderBoard(d||[],true);}
-  else{const d=await api('');if(!silent)renderBoard(d||[],false);}
+  else{
+    // detect flair from path e.g. /forum/ent/
+    const fm=path.match(/\/forum\/([a-z]+)\/?$/);
+    const pathFlair=fm&&['ent','pol','gen','media','tech'].includes(fm[1])?fm[1]:null;
+    if(pathFlair&&pathFlair!==_flair){_flair=pathFlair;document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.toggle('active',b.textContent.toLowerCase()===_flair);});}
+    const qs=`api/threads?flair=${_flair||''}&sort=${_sort}`;
+    const d=cGet(qs)||await (async()=>{const r=await fetch(`${W}${qs}`);const j=await r.json();cSet(qs,j);return j;})();
+    if(!silent){renderBoard(d||[],false);loadStorage();}
+  }
 }
 const _imgObs=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){const el=e.target;if(el.dataset.src){el.src=el.dataset.src;delete el.dataset.src;}_imgObs.unobserve(el);}});
