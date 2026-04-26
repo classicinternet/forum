@@ -226,7 +226,7 @@ Tips:
         <input type="checkbox" id="inpNsfw">
         <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Mark as NSFW <span class="text-red-400">(blurs content)</span></span>
       </label>
-      <div class="mb-4">
+      <div class="mb-4" id="flairSection" style="border:1px solid transparent;border-radius:16px;padding:10px;margin:-10px;transition:border-color .3s">
         <p class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">Flair</p>
         <div class="flex flex-wrap gap-2">
           <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="" checked class="accent-white"><span class="text-[10px] font-bold text-slate-400">None</span></label>
@@ -305,6 +305,16 @@ document.addEventListener('click',e=>{
 async function adminSetSiteBanner(){const p=prompt('Admin Password:');if(!p)return;const t=prompt('Banner text (empty to clear):');if(t===null)return;const r=await api('','PATCH',{action:'setBanner',text:t||null},{'X-Admin-Pass':p});if(r?.success){toast(t?'Banner set.':'Cleared.','success');loadSiteBanner();}else toast('Failed.','error');}
 async function adminClearSiteBanner(){const p=prompt('Admin Password:');if(!p)return;const r=await api('','PATCH',{action:'setBanner',text:null},{'X-Admin-Pass':p});if(r?.success){document.getElementById('siteBannerEl').style.display='none';toast('Cleared.','success');}else toast('Failed.','error');}
 async function adminSetThreadBanner(tId){const p=prompt('Admin Password:');if(!p)return;const t=prompt('Thread banner (empty to clear):');if(t===null)return;const r=await api(`?id=${tId}`,'PATCH',{action:'setThreadBanner',text:t||null},{'X-Admin-Pass':p});if(r?.success){cClr();toast(t?'Banner set.':'Cleared.','success');router();}else toast('Failed.','error');}
+async function adminSetFlair(tId){
+  const p=prompt('Admin Password:');if(!p)return;
+  const f=prompt('Choose flair:\nent | pol | gen | media | tech\n(leave empty to clear)');
+  if(f===null)return;
+  const valid=['ent','pol','gen','media','tech'];
+  if(f&&!valid.includes(f)){toast('Invalid flair.','error');return;}
+  const r=await fetch(`${W}api/admin/update-flair`,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Pass':p},body:JSON.stringify({threadId:tId,flair:f||null})});
+  const d=await r.json();
+  if(d.success){cClr();toast('Flair updated.','success');router();}else toast('Failed.','error');
+}
 let _sd=null;
 document.getElementById('searchInput').addEventListener('input',function(){
   const q=this.value.trim();
@@ -472,7 +482,7 @@ function renderBoard(threads){
   const filtered=threads.filter(t=>!t.locked);
   if(!filtered.length){document.getElementById('view-container').innerHTML=`<div class="text-center py-20 text-slate-600"><i class="fa-solid fa-ghost text-4xl mb-4 block"></i><p class="text-[11px] font-bold uppercase tracking-widest">No threads yet. Be the first.</p></div>`;return;}
   const mkCard=(t,i,num=true)=>{
-    const mId=reg([{label:'Report Thread',fn:()=>act('report',t.id)},{label:'Toggle Sticky',fn:()=>act('sticky',t.id)},{label:t.locked?'Unlock':'Lock',fn:()=>act('lock',t.id)},{label:'Set Thread Banner',warn:true,fn:()=>adminSetThreadBanner(t.id)},{label:'Delete',danger:true,fn:()=>act('delete',t.id)}]);
+    const mId=reg([{label:'Report Thread',fn:()=>act('report',t.id)},{label:'Toggle Sticky',fn:()=>act('sticky',t.id)},{label:t.locked?'Unlock':'Lock',fn:()=>act('lock',t.id)},{label:'Set Flair',warn:true,fn:()=>adminSetFlair(t.id)},{label:'Set Thread Banner',warn:true,fn:()=>adminSetThreadBanner(t.id)},{label:'Delete',danger:true,fn:()=>act('delete',t.id)}]);
     const op=t.op||t.replies?.[0]||{};
     return`<div onclick="navTo('${BASE}/thread/${makeSlug(t.title,t.id)}')" class="relative glass glass-hover p-5 rounded-[2.5rem] flex gap-5 items-center cursor-pointer">${num?`<div class="thread-number">#${i+1}</div>`:''}<div class="flex-shrink-0">${getThumb(op)}</div><div class="flex-1 min-w-0"><div class="flex items-center mb-1 flex-wrap gap-1">${t.sticky?'<span class="sticky-tag">STICKY</span>':''}${t.locked?'<i class="fa-solid fa-lock text-[10px] text-red-500 mr-1"></i>':''}${op.nsfw?'<span class="nsfw-tag">NSFW</span>':''}${flairTag(t.flair)}<h2 class="text-sm font-black text-white uppercase tracking-tight truncate">${esc(t.title||'Anonymous')}</h2><span class="ml-2 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.replyCount||0}</span><span class="ml-1 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0}</span></div><p class="text-slate-500 text-[11px] line-clamp-2 opacity-80">${esc(op.content||'')}</p></div><button onclick="openMenu(this,'${mId}')" class="p-3 text-slate-700 hover:text-white flex-shrink-0"><i class="fa-solid fa-ellipsis-v"></i></button></div>`;
   };
@@ -554,6 +564,8 @@ async function submitPost(){
   const all=[..._imgs];if(urlImg&&!all.find(x=>x.url===urlImg))all.push({url:urlImg,thumb:urlImg});
   const imgUrls=all.map(x=>x.url),thumbUrls=all.map(x=>x.thumb||x.url);
   const flair=document.querySelector('input[name="flair"]:checked')?.value||null;
+  if(!isReply&&!flair){toast('Please select a flair before posting.','error');btn.disabled=false;btn.innerText='Transmit Message';document.getElementById('flairSection').style.borderColor='rgba(248,113,113,.6)';return;}
+  document.getElementById('flairSection').style.borderColor='transparent';
   const res=await api('','POST',{type:isReply?'reply':'thread',threadId,title,content,nsfw,flair:flair||undefined,image:imgUrls[0]||'',thumb:thumbUrls[0]||'',images:imgUrls,thumbs:thumbUrls,token:captchaToken});
   if(res?.success){
     ['inpTitle','inpContent'].forEach(id=>document.getElementById(id).value='');
