@@ -4,7 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>ClassicInternetForum | It's a meeting place for the community.</title>
-<meta name="description" content="ClassicInternetForum: It's a meeting place for the community.">
+<meta name="description" id="metaDesc" content="ClassicInternetForum: It's a meeting place for the community.">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="https://classicinternet.github.io/forum/sitemap.xml">
+<link rel="canonical" id="canonicalUrl" href="https://classicinternet.github.io/forum/">
+<meta property="og:title" id="ogTitle" content="ClassicInternetForum | It's a meeting place for the community.">
+<meta property="og:description" id="ogDesc" content="ClassicInternetForum: It's a meeting place for the community.">
+<meta property="og:url" id="ogUrl" content="https://classicinternet.github.io/forum/">
+<meta property="og:type" content="website">
+<script type="application/ld+json" id="seoSchema"></script>
 <link rel="icon" type="image/png" href="https://ui-avatars.com/api/?name=CiF&background=1a1a1a&color=fff&font-size=0.5">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -265,6 +272,63 @@ let _tt;
 const toast=(msg,type='info')=>{const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;clearTimeout(_tt);_tt=setTimeout(()=>{el.className='';},3200);};
 const FLAIRS={ent:'#7c3aed',pol:'#dc2626',gen:'#2563eb',media:'#d97706',tech:'#059669'};
 const flairTag=f=>f?`<span class="flair-tag flair-${f}">${f}</span>`:'';
+
+function updateSEO(type, data) {
+  const canonicalUrl = window.location.href;
+  document.getElementById('canonicalUrl').href = canonicalUrl;
+  document.getElementById('ogUrl').content = canonicalUrl;
+  const descMeta = document.getElementById('metaDesc');
+  const ogDesc = document.getElementById('ogDesc');
+  const ogTitle = document.getElementById('ogTitle');
+  const schemaEl = document.getElementById('seoSchema');
+
+  if (type === 'board') {
+    const title = "ClassicInternetForum | It's a meeting place for the community.";
+    const desc = "ClassicInternetForum: It's a meeting place for the community.";
+    document.title = title;
+    if(ogTitle) ogTitle.content = title;
+    if(descMeta) descMeta.content = desc;
+    if(ogDesc) ogDesc.content = desc;
+    if(schemaEl) schemaEl.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "url": "https://classicinternet.github.io/forum/",
+      "name": "ClassicInternetForum"
+    });
+  } else if (type === 'thread') {
+    const title = `${esc(data.title)} | ClassicInternetForum`;
+    const opContent = data.op?.content || data.replies?.[0]?.content || '';
+    const desc = opContent.substring(0, 150).replace(/[\n\r]/g, ' ') + (opContent.length > 150 ? '...' : '');
+    document.title = title;
+    if(ogTitle) ogTitle.content = title;
+    if(descMeta) descMeta.content = desc;
+    if(ogDesc) ogDesc.content = desc;
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "DiscussionForumPosting",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": canonicalUrl
+      },
+      "headline": data.title,
+      "articleBody": opContent,
+      "author": {
+        "@type": "Person",
+        "name": data.op?.userId || data.replies?.[0]?.userId || "Anonymous"
+      },
+      "interactionStatistic": {
+        "@type": "InteractionCounter",
+        "interactionType": "https://schema.org/CommentAction",
+        "userInteractionCount": data.totalReplies || data.replies?.length || 0
+      }
+    };
+    const opImg = data.op?.image || data.op?.images?.[0] || data.replies?.[0]?.image || data.replies?.[0]?.images?.[0];
+    if(opImg) schema.image = opImg;
+    if(schemaEl) schemaEl.textContent = JSON.stringify(schema);
+  }
+}
+
 function setFlair(f,btn){_flair=f;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(f)navTo(`${BASE}/${f}/`);else navTo(`${BASE}/`);cClr();}
 function setSort(v){_sort=v;cClr();router();}
 async function loadStorage(){
@@ -475,7 +539,7 @@ function dismissBanner(){document.getElementById('newRepliesBanner').style.displ
 window.addEventListener('scroll',()=>{document.getElementById('refreshBtn').style.display=window.scrollY<80?'block':'none';});
 async function hardRefresh(){cClr();await router();toast('Refreshed','success');}
 function renderBoard(threads){
-  document.title="ClassicInternetForum | It's a meeting place for the community.";
+  updateSEO('board');
   document.getElementById('mainFooter').style.display='block';
   document.getElementById('newRepliesBanner').style.display='none';
   _tid=null;_bi=threads;
@@ -493,7 +557,7 @@ function renderBoard(threads){
   observeLazyImgs();
 }
 function renderThread(t,page){
-  document.title=`${esc(t.title)} | ClassicInternetForum`;
+  updateSEO('thread', t);
   document.getElementById('mainFooter').style.display='none';
   document.getElementById('newRepliesBanner').style.display='none';
   _tid=String(t.id);_tslug=makeSlug(t.title,t.id);_trc=t.totalReplies||t.replies?.length||0;_pg=page||t.page||1;
