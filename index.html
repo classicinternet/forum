@@ -157,7 +157,7 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
         <h1 class="text-white font-black text-[clamp(14px,4vw,20px)] tracking-tighter group-hover:text-slate-400 transition-colors break-all leading-tight">ClassicInternet.github.io/FORUM</h1>
         <span class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em]">It's a meeting place for the community.</span>
       </div>
-      <button onclick="openModal()" class="bg-white text-black px-6 py-3 rounded-full font-black text-[10px] tracking-widest uppercase shadow-2xl hover:bg-slate-200 transition-all w-full sm:w-auto flex-shrink-0">New Thread</button>
+      <button onclick="openModal(true)" class="bg-white text-black px-6 py-3 rounded-full font-black text-[10px] tracking-widest uppercase shadow-2xl hover:bg-slate-200 transition-all w-full sm:w-auto flex-shrink-0">New Thread</button>
     </div>
     <div class="mt-5 relative" id="searchBar">
       <i class="fa-solid fa-magnifying-glass" id="searchIcon"></i>
@@ -570,7 +570,7 @@ function renderThread(t,page){
   const bannerHtml=t.banner?`<div class="thread-banner" id="tBanner"><div class="thread-banner-text"><i class="fa-solid fa-bullhorn mr-2 opacity-70"></i>${esc(t.banner)}</div><button class="thread-banner-close" onclick="document.getElementById('tBanner').remove()">✕</button></div>`:'';
   document.getElementById('view-container').innerHTML=`
     <button onclick="navTo('${BASE}/')" class="mb-6 text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return</button>
-    <h1 class="text-xl font-black text-white mb-4 uppercase tracking-tighter">${esc(t.title)} ${t.locked?'<i class="fa-solid fa-lock text-sm text-red-500 ml-2"></i>':''}</h1><div class="flex gap-3 mb-6"><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0} views</span><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.totalReplies||t.replies?.length||0} replies</span></div>
+    <div class="flex items-center gap-3 mb-4 flex-wrap"><h1 class="text-xl font-black text-white uppercase tracking-tighter m-0">${esc(t.title)} ${t.locked?'<i class="fa-solid fa-lock text-sm text-red-500 ml-2"></i>':''}</h1>${t.flair?`<span onclick="navTo('${BASE}/${t.flair}/')" class="flair-tag flair-${t.flair} cursor-pointer hover:opacity-80 transition-opacity" style="font-size:11px;padding:4px 10px;margin:0">${t.flair}</span>`:''}</div><div class="flex gap-3 mb-6"><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0} views</span><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.totalReplies||t.replies?.length||0} replies</span></div>
     ${bannerHtml}${pgHtml}
     <div class="space-y-6 pb-24">
     ${replies.map((r,i)=>{
@@ -610,27 +610,36 @@ function renderThread(t,page){
       </article>`;
     }).join('')}
     </div>${pgHtml}
-    ${!t.locked?`<div class="fixed bottom-10 left-4 right-4 max-w-2xl mx-auto"><button onclick="openModal()" class="bg-white text-black w-full py-5 rounded-[2rem] font-black uppercase tracking-widest shadow-xl">Post Reply</button></div>`:''}
+    ${!t.locked?`<div class="fixed bottom-10 left-4 right-4 max-w-2xl mx-auto"><button onclick="openModal(false)" class="bg-white text-black w-full py-5 rounded-[2rem] font-black uppercase tracking-widest shadow-xl">Post Reply</button></div>`:''}
   `;
   observeLazyImgs();
 }
 function goPage(p){if(_tid&&_tslug){history.pushState({},'',`${BASE}/thread/${_tslug}${p>1?'?page='+p:''}`);router();}}
-function quotePost(pid){document.getElementById('inpContent').value+=`>>${pid}\n`;openModal();document.getElementById('inpContent').focus();}
+function quotePost(pid){document.getElementById('inpContent').value+=`>>${pid}\n`;openModal(false);document.getElementById('inpContent').focus();}
+
 async function submitPost(){
   if(!isVerified||!captchaToken){toast('Please complete the captcha.','error');return;}
   const btn=document.getElementById('submitBtn');btn.disabled=true;btn.innerText='TRANSMITTING…';
-  const path=window.location.pathname,isReply=path.startsWith(BASE+'/thread/');
-  const slug=isReply?path.replace(BASE+'/thread/','').split('?')[0]:'',threadId=isReply?idFromSlug(slug):null;
-  const content=document.getElementById('inpContent').value;
+  const path=window.location.pathname;
+  const isReply = window._isReplyOverride;
+  const slug=path.startsWith(BASE+'/thread/')?path.replace(BASE+'/thread/','').split('?')[0]:'',threadId=isReply&&slug?idFromSlug(slug):null;
+  const content=document.getElementById('inpContent').value.trim();
   const nsfw=document.getElementById('inpNsfw').checked;
-  const title=document.getElementById('inpTitle').value||'Anonymous';
+  const title=document.getElementById('inpTitle').value.trim();
   const urlImg=document.getElementById('inpImageLink').value.trim();
   const all=[..._imgs];if(urlImg&&!all.find(x=>x.url===urlImg))all.push({url:urlImg,thumb:urlImg});
   const imgUrls=all.map(x=>x.url),thumbUrls=all.map(x=>x.thumb||x.url);
   const flair=document.querySelector('input[name="flair"]:checked')?.value||null;
-  if(!isReply&&!flair){toast('Please select a flair before posting.','error');btn.disabled=false;btn.innerText='Transmit Message';document.getElementById('flairSection').style.borderColor='rgba(248,113,113,.6)';return;}
+
+  if(!isReply && (!title || !content || !flair)){
+    toast('Subject, body, and flair are mandatory.','error');
+    btn.disabled=false;btn.innerText='Transmit Message';
+    if(!flair) document.getElementById('flairSection').style.borderColor='rgba(248,113,113,.6)';
+    return;
+  }
   document.getElementById('flairSection').style.borderColor='transparent';
-  const res=await api('','POST',{type:isReply?'reply':'thread',threadId,title,content,nsfw,flair:flair||undefined,image:imgUrls[0]||'',thumb:thumbUrls[0]||'',images:imgUrls,thumbs:thumbUrls,token:captchaToken});
+
+  const res=await api('','POST',{type:isReply?'reply':'thread',threadId,title:title||'Anonymous',content,nsfw,flair:flair||undefined,image:imgUrls[0]||'',thumb:thumbUrls[0]||'',images:imgUrls,thumbs:thumbUrls,token:captchaToken});
   if(res?.success){
     ['inpTitle','inpContent'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('inpNsfw').checked=false;
@@ -659,7 +668,17 @@ async function act(type,tId,rId=null,uid=null){
   else r=await api(`?id=${tId}${rId?'&replyId='+rId:''}`, 'DELETE',null,H);
   if(r){cClr();router();}else toast('Action failed.','error');
 }
-function openModal(){document.getElementById('postModal').classList.remove('hidden');isVerified=false;captchaToken=null;const b=document.getElementById('submitBtn');b.disabled=true;b.classList.add('opacity-50','cursor-not-allowed');b.innerText='Transmit Message';if(typeof turnstile!=='undefined')turnstile.reset();}
+function openModal(forceNew = null){
+  const isReply = forceNew === false || (forceNew !== true && window.location.pathname.startsWith(BASE+'/thread/'));
+  window._isReplyOverride = isReply;
+  document.getElementById('postModal').classList.remove('hidden');
+  document.getElementById('inpTitle').style.display = isReply ? 'none' : 'block';
+  document.getElementById('flairSection').style.display = isReply ? 'none' : 'block';
+  document.getElementById('modalTitle').textContent = isReply ? 'Post Reply' : 'New Transmission';
+  isVerified=false;captchaToken=null;
+  const b=document.getElementById('submitBtn');b.disabled=true;b.classList.add('opacity-50','cursor-not-allowed');b.innerText='Transmit Message';
+  if(typeof turnstile!=='undefined')turnstile.reset();
+}
 function closeModal(){document.getElementById('postModal').classList.add('hidden');}
 async function router(silent=false){
   closeMenu();closeSearch();
