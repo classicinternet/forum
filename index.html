@@ -31,7 +31,7 @@ body{background:#000;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden
 @media(hover:none){.img-open-btn{opacity:.7}}
 .sticky-tag{background:#fff;color:#000;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:900;margin-right:6px}
 .nsfw-tag{background:#ef4444;color:#fff;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:900;margin-right:6px}
-.admin-badge{background:linear-gradient(135deg,#0ff 0%,#0af 100%);color:#000;padding:2px 8px;border-radius:4px;font-size:8px;font-weight:900;letter-spacing:.1em;margin-right:6px;box-shadow:0 0 8px rgba(0,255,255,.4)}
+.admin-badge{background:transparent;color:#00f3ff;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:900;letter-spacing:.15em;margin-right:4px;text-shadow:0 0 5px #00f3ff,0 0 10px #00f3ff;border:1px solid rgba(0,243,255,.3)}
 input,textarea{background:#1a1a1a !important;border:1px solid rgba(255,255,255,.1) !important;color:#fff !important;transition:all .3s}
 input:focus,textarea:focus{border-color:#fff !important;outline:none}
 input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,255,255,.2) !important;width:16px !important;height:16px !important;border-radius:4px !important;cursor:pointer;accent-color:#ef4444}
@@ -177,7 +177,6 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
   <footer id="mainFooter" class="mt-20 py-10 border-t border-white/5 text-center">
     <div class="flex justify-center gap-6 mb-8 flex-wrap">
       <span class="text-[10px] font-black uppercase text-slate-600 tracking-widest">Est. 2026</span>
-      <a href="/forum/archive" class="text-[10px] font-black uppercase text-white tracking-widest border-b border-white/20">The Archive</a>
       <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">ClassicInternetForum</span>
     </div>
     <p class="text-[11px] text-slate-500 leading-relaxed max-w-md mx-auto mb-6">ClassicInternetForum is a law-abiding platform. All posts are user-generated.</p>
@@ -465,22 +464,22 @@ function showNRB(n){document.getElementById('newRepliesText').textContent=`↑ $
 function dismissBanner(){document.getElementById('newRepliesBanner').style.display='none';if(_tid){cDel(`?id=${_tid}&page=${_pg}`);router();}}
 window.addEventListener('scroll',()=>{document.getElementById('refreshBtn').style.display=window.scrollY<80?'block':'none';});
 async function hardRefresh(){cClr();await router();toast('Refreshed','success');}
-function renderBoard(threads,archive=false){
+function renderBoard(threads){
   document.title="ClassicInternetForum | It's a meeting place for the community.";
   document.getElementById('mainFooter').style.display='block';
   document.getElementById('newRepliesBanner').style.display='none';
   _tid=null;_bi=threads;
-  const filtered=threads.filter(t=>archive?t.locked:!t.locked);
-  const hdr=archive?`<div class="flex flex-col gap-2 mb-6"><button onclick="navTo('${BASE}/')" class="w-fit text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return to Board</button><div class="text-[10px] font-black uppercase text-white tracking-[0.3em]">Viewing: The Archive</div></div>`:'';
-  if(!filtered.length){document.getElementById('view-container').innerHTML=hdr+`<div class="text-center py-20 text-slate-600"><i class="fa-solid fa-ghost text-4xl mb-4 block"></i><p class="text-[11px] font-bold uppercase tracking-widest">${archive?'No archived threads.':'No threads yet. Be the first.'}</p></div>`;return;}
+  const filtered=threads.filter(t=>!t.locked);
+  if(!filtered.length){document.getElementById('view-container').innerHTML=`<div class="text-center py-20 text-slate-600"><i class="fa-solid fa-ghost text-4xl mb-4 block"></i><p class="text-[11px] font-bold uppercase tracking-widest">No threads yet. Be the first.</p></div>`;return;}
   const mkCard=(t,i,num=true)=>{
     const mId=reg([{label:'Report Thread',fn:()=>act('report',t.id)},{label:'Toggle Sticky',fn:()=>act('sticky',t.id)},{label:t.locked?'Unlock':'Lock',fn:()=>act('lock',t.id)},{label:'Set Thread Banner',warn:true,fn:()=>adminSetThreadBanner(t.id)},{label:'Delete',danger:true,fn:()=>act('delete',t.id)}]);
     const op=t.op||t.replies?.[0]||{};
     return`<div onclick="navTo('${BASE}/thread/${makeSlug(t.title,t.id)}')" class="relative glass glass-hover p-5 rounded-[2.5rem] flex gap-5 items-center cursor-pointer">${num?`<div class="thread-number">#${i+1}</div>`:''}<div class="flex-shrink-0">${getThumb(op)}</div><div class="flex-1 min-w-0"><div class="flex items-center mb-1 flex-wrap gap-1">${t.sticky?'<span class="sticky-tag">STICKY</span>':''}${t.locked?'<i class="fa-solid fa-lock text-[10px] text-red-500 mr-1"></i>':''}${op.nsfw?'<span class="nsfw-tag">NSFW</span>':''}${flairTag(t.flair)}<h2 class="text-sm font-black text-white uppercase tracking-tight truncate">${esc(t.title||'Anonymous')}</h2><span class="ml-2 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.replyCount||0}</span><span class="ml-1 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0}</span></div><p class="text-slate-500 text-[11px] line-clamp-2 opacity-80">${esc(op.content||'')}</p></div><button onclick="openMenu(this,'${mId}')" class="p-3 text-slate-700 hover:text-white flex-shrink-0"><i class="fa-solid fa-ellipsis-v"></i></button></div>`;
   };
   let trendHtml='';
-  if(!archive){const tr=[...filtered].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);if(tr.some(t=>(t.views||0)>0))trendHtml=`<div class="mb-8"><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">🔥 Trending</div><div class="space-y-3">${tr.map(t=>mkCard(t,0,false)).join('')}</div></div><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">All Threads</div>`;}
-  document.getElementById('view-container').innerHTML=hdr+trendHtml+filtered.map((t,i)=>mkCard(t,i,true)).join('');
+  const tr=[...filtered].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);
+  if(tr.some(t=>(t.views||0)>0))trendHtml=`<div class="mb-8"><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">🔥 Trending</div><div class="space-y-3">${tr.map(t=>mkCard(t,0,false)).join('')}</div></div><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">All Threads</div>`;
+  document.getElementById('view-container').innerHTML=trendHtml+filtered.map((t,i)=>mkCard(t,i,true)).join('');
   observeLazyImgs();
 }
 function renderThread(t,page){
@@ -516,7 +515,7 @@ function renderThread(t,page){
       ]);
       const nW=r.nsfw?`<div class="nsfw-wrap blurred" onclick="toggleNsfw(this)"><div class="nsfw-reveal"><span>⚠ NSFW — Click to reveal</span></div><div class="nsfw-inner">`:'';
       const nC=r.nsfw?`</div></div>`:'';
-      const idBadge=r.verifiedAdmin?`<span class="admin-badge">ADMIN</span>`:`<span class="text-[10px] font-black text-slate-500 uppercase">ID:&nbsp;${esc(r.userId)}</span>`;
+      const idBadge=r.verifiedAdmin?`<span class="admin-badge">⬡ ADMIN</span>`:`<span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">ID:&nbsp;${esc(r.userId)}</span>`;
       return`<article id="post-${r.id}" class="glass p-7 rounded-[2.5rem] ${isOpt?'optimistic':''}" style="transition:border-color .4s,background .4s">
         <div class="flex justify-between items-start mb-4">
           <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -595,15 +594,13 @@ async function router(silent=false){
     const ck=`?id=${threadId}&page=${page}`;
     const data=await api(ck);
     if(data){if(silent){const nc=data.totalReplies||data.replies?.length||0;if(nc>_trc){showNRB(nc-_trc);cSet(ck,data);}}else renderThread(data,page);}
-  }else if(path.endsWith('/archive')){const d=await api('');if(!silent)renderBoard(d||[],true);}
-  else{
-    // detect flair from path e.g. /forum/ent/
+  }else{
     const fm=path.match(/\/forum\/([a-z]+)\/?$/);
     const pathFlair=fm&&['ent','pol','gen','media','tech'].includes(fm[1])?fm[1]:null;
     if(pathFlair&&pathFlair!==_flair){_flair=pathFlair;document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.toggle('active',b.textContent.toLowerCase()===_flair);});}
     const qs=`api/threads?flair=${_flair||''}&sort=${_sort}`;
     const d=cGet(qs)||await (async()=>{const r=await fetch(`${W}${qs}`);const j=await r.json();cSet(qs,j);return j;})();
-    if(!silent){renderBoard(d||[],false);loadStorage();}
+    if(!silent){renderBoard(d||[]);loadStorage();}
   }
 }
 const _imgObs=new IntersectionObserver(entries=>{
