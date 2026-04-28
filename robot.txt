@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /verify/
+
+# Specific Sitemap location
+Sitemap: https://classicinternet.github.io/forum/sitemap.xml
