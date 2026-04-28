@@ -125,6 +125,11 @@ input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,2
 .storage-bar{height:4px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
 .storage-bar-fill{height:100%;border-radius:999px;transition:width .6s ease;background:#fff}
 .storage-bar-fill.warn{background:#fbbf24}.storage-bar-fill.danger{background:#f87171}
+.video-preview{width:320px;max-width:100%;aspect-ratio:16/9;background:#111;border-radius:12px;border:1px solid rgba(255,255,255,.1);margin-top:12px;overflow:hidden;position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.video-preview:hover{background:#1a1a1a;border-color:rgba(255,255,255,.3)}
+.video-preview i{font-size:32px;color:rgba(255,255,255,.5);transition:transform .2s}
+.video-preview:hover i{transform:scale(1.1);color:#fff}
+.video-preview-label{position:absolute;bottom:8px;left:10px;font-size:9px;font-weight:900;text-transform:uppercase;color:rgba(255,255,255,.4);letter-spacing:.1em}
 </style>
 </head>
 <body class="pb-32">
@@ -393,7 +398,9 @@ const hl=(t,q)=>{if(!t||!q)return esc(t||'');const rx=new RegExp('('+q.replace(/
 async function runSearch(q){
   const sr=document.getElementById('searchResults');sr.style.display='block';
   const ql=q.toLowerCase();
+  // Board index search
   const br=(_bi||[]).filter(t=>t.title?.toLowerCase().includes(ql)||t.op?.content?.toLowerCase().includes(ql)).slice(0,15);
+  // Reply search — only from client cache, no new API calls
   const tr=[];
   Object.values(_cache).forEach(entry=>{
     const d=entry.d;
@@ -420,7 +427,9 @@ async function runSearch(q){
 document.addEventListener('click',e=>{if(!document.getElementById('searchBar').contains(e.target))closeSearch();});
 function onCaptchaSuccess(token){isVerified=true;captchaToken=token;const b=document.getElementById('submitBtn');b.disabled=false;b.classList.remove('opacity-50','cursor-not-allowed');}
 
+// GitHub Pages 404 SPA redirect
 (()=>{const r=sessionStorage.getItem('spa_redirect');if(r){sessionStorage.removeItem('spa_redirect');history.replaceState(null,null,r);}})();
+// Backward-compat: old hash URLs → new path
 if(location.hash.startsWith('#thread/')){const p=location.hash.replace('#thread/','').split('/');history.replaceState(null,null,`${BASE}/thread/thread-${p[0]}${p[1]?'?page='+p[1]:''}`);}
 else if(location.hash==='#archive'){history.replaceState(null,null,`${BASE}/archive`);}
 document.getElementById('inpContent').addEventListener('input',function(){const n=this.value.length,el=document.getElementById('charCount');el.textContent=n+' / 2000';el.style.color=n>1800?'#f87171':n>1500?'#fbbf24':'';});
@@ -489,12 +498,32 @@ function buildBL(replies){
   return m;
 }
 function scrollToPost(pid){const el=document.getElementById('post-'+pid);if(!el)return;el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('post-highlight');setTimeout(()=>el.classList.remove('post-highlight'),2000);}
+
+function playVideo(el, embedUrl) {
+    el.innerHTML = `<iframe width="100%" height="100%" src="${embedUrl}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    el.style.cursor = 'default';
+}
+
 function procContent(content,replies){
   const pids=new Set((replies||[]).map(r=>r.id));
   let html=(content||'').split('\n').map(l=>l.startsWith('>')&&!l.startsWith('>>')?`<span class="greentext">${esc(l)}</span>`:esc(l)).join('\n');
   html=html.replace(/&gt;&gt;(\d{10,14})/g,(m,pid)=>pids.has(pid)?`<a class="quote-link" onclick="scrollToPost('${pid}')">&gt;&gt;${pid}</a>`:`<span class="text-white font-bold">&gt;&gt;${pid}</span>`);
   const embeds=[];
   html=html.replace(/(https?:\/\/[^\s<"&]+)/g,(m,url)=>{
+    // YouTube detection
+    let ytId = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/\s]{11})/i);
+    if(ytId) {
+        const embedUrl = `https://www.youtube.com/embed/${ytId[1]}`;
+        embeds.push(`<div class="video-preview" onclick="playVideo(this, '${embedUrl}')"><i class="fa-brands fa-youtube"></i><span class="video-preview-label">YouTube · Click to play</span></div>`);
+        return '';
+    }
+    // Archive.org detection
+    let arcId = url.match(/archive\.org\/details\/([^\/\s]+)/i);
+    if(arcId) {
+        const embedUrl = `https://archive.org/embed/${arcId[1]}`;
+        embeds.push(`<div class="video-preview" onclick="playVideo(this, '${embedUrl}')"><i class="fa-solid fa-building-columns"></i><span class="video-preview-label">Archive.org · Click to play</span></div>`);
+        return '';
+    }
     if(isImg(url)){embeds.push(`<div class="post-img-wrap"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${url}" data-full="${url}" class="post-img lazyimg" onclick="expandImg(this)"><a href="${url}" target="_blank" rel="noopener" class="img-open-btn">↗</a></div>`);return'';}
     if(isCbVid(url)||isVid(url)){embeds.push(`<video controls class="post-img" style="max-width:100%;max-height:none;border-radius:12px;margin-top:12px"><source src="${url}"></video>`);return'';}
     return renderLP(url);
@@ -551,6 +580,7 @@ function renderBoard(threads){
   document.getElementById('view-container').innerHTML=trendHtml+filtered.map((t,i)=>mkCard(t,i,true)).join('');
   observeLazyImgs();
 }
+
 function renderThread(t,page){
   updateSEO('thread', t);
   document.getElementById('mainFooter').style.display='none';
@@ -561,10 +591,17 @@ function renderThread(t,page){
   const replies=[...(t.replies||[])];
   pending.forEach(p=>{if(!replies.find(r=>r.id===p.id))replies.push(p);});
   const bl=buildBL(replies);
-  const pgHtml=tot>1?`<div class="flex items-center justify-center gap-2 py-6 flex-wrap"><button class="page-btn" onclick="goPage(1)" ${cur===1?'disabled':''}>« First</button><button class="page-btn" onclick="goPage(${cur-1})" ${cur===1?'disabled':''}>‹ Prev</button>${Array.from({length:tot},(_,i)=>i+1).filter(p=>Math.abs(p-cur)<=2||p===1||p===tot).map((p,ix,arr)=>(ix>0&&p-arr[ix-1]>1?`<span class="text-slate-700 font-black text-xs px-1">…</span>`:'')+`<button class="page-btn ${p===cur?'active':''}" onclick="goPage(${p})">${p}</button>`).join('')}<button class="page-btn" onclick="goPage(${cur+1})" ${cur===tot?'disabled':''}>Next ›</button><button class="page-btn" onclick="goPage(${tot})" ${cur===tot?'disabled':''}>Last »</button></div><div class="text-center text-[9px] font-bold text-slate-600 uppercase mb-4">Page ${cur} of ${tot} · ${t.totalReplies} replies</div>`:'';
+  
+  const jumpToLast = replies.length > 5 ? `<button onclick="scrollToPost('${replies[replies.length-1].id}')" class="bg-white/5 hover:bg-white/10 text-slate-400 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all mb-4"><i class="fa-solid fa-arrow-down mr-2"></i>Jump to Last Reply</button>` : '';
+
+  const pgHtml=tot>1?`<div class="flex items-center justify-center gap-2 py-6 flex-wrap"><button class="page-btn" onclick="goPage(1)" ${cur===1?'disabled':''}>1</button>${Array.from({length:tot},(_,i)=>i+1).filter(p=>p!==1 && p!==tot && (Math.abs(p-cur)<=1)).map((p,ix,arr)=>(ix===0 && p>2 ? `<span class="text-slate-700 font-black text-xs px-1">…</span>` : '') + `<button class="page-btn ${p===cur?'active':''}" onclick="goPage(${p})">${p}</button>` + (ix===arr.length-1 && p < tot-1 ? `<span class="text-slate-700 font-black text-xs px-1">…</span>` : '')).join('')}<button class="page-btn ${cur===tot?'active':''}" onclick="goPage(${tot})" ${cur===tot && tot===1 ? 'disabled':''}>${tot}</button><button class="page-btn" onclick="goPage(${cur+1})" ${cur===tot?'disabled':''}>Next</button></div>`:'';
+  
   const bannerHtml=t.banner?`<div class="thread-banner" id="tBanner"><div class="thread-banner-text"><i class="fa-solid fa-bullhorn mr-2 opacity-70"></i>${esc(t.banner)}</div><button class="thread-banner-close" onclick="document.getElementById('tBanner').remove()">✕</button></div>`:'';
   document.getElementById('view-container').innerHTML=`
-    <button onclick="navTo('${BASE}/')" class="mb-6 text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return</button>
+    <div class="flex justify-between items-center mb-6">
+      <button onclick="navTo('${BASE}/')" class="text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return</button>
+      ${jumpToLast}
+    </div>
     <div class="flex items-center gap-3 mb-4 flex-wrap"><h1 class="text-xl font-black text-white uppercase tracking-tighter m-0">${esc(t.title)} ${t.locked?'<i class="fa-solid fa-lock text-sm text-red-500 ml-2"></i>':''}</h1>${t.flair?`<span onclick="navTo('${BASE}/${t.flair}/')" class="flair-tag flair-${t.flair} cursor-pointer hover:opacity-80 transition-opacity" style="font-size:11px;padding:4px 10px;margin:0">${t.flair}</span>`:''}</div><div class="flex gap-3 mb-6"><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0} views</span><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.totalReplies||t.replies?.length||0} replies</span></div>
     ${bannerHtml}${pgHtml}
     <div class="space-y-6 pb-24">
@@ -609,6 +646,7 @@ function renderThread(t,page){
   `;
   observeLazyImgs();
 }
+
 function goPage(p){if(_tid&&_tslug){history.pushState({},'',`${BASE}/thread/${_tslug}${p>1?'?page='+p:''}`);router();}}
 function quotePost(pid){document.getElementById('inpContent').value+=`>>${pid}\n`;openModal(false);document.getElementById('inpContent').focus();}
 
