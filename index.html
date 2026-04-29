@@ -355,12 +355,13 @@ async function loadSiteBanner(){
     const r=await fetch(`${W}?banner=true&t=${Date.now()}`);
     const d=await r.json();
     if(d&&d.text&&localStorage.getItem(BANNER_KEY)!==String(d.ts)){
+      window._bannerTs = d.ts;
       document.getElementById('siteBannerText').textContent=d.text;
       document.getElementById('siteBannerEl').style.display='block';
     } else document.getElementById('siteBannerEl').style.display='none';
   }catch{}
 }
-function closeSiteBanner(){document.getElementById('siteBannerEl').style.display='none';localStorage.setItem(BANNER_KEY,Date.now());}
+function closeSiteBanner(){document.getElementById('siteBannerEl').style.display='none';localStorage.setItem(BANNER_KEY,window._bannerTs||Date.now());}
 let _apo=false;
 function toggleAdminPanel(){
   _apo=!_apo;
@@ -555,7 +556,7 @@ function openMenu(btn,mid){
   let left=r.right-190,top=r.bottom+6;
   if(left<8)left=8;if(top+mh>window.innerHeight-16)top=r.top-mh-6;
   menu.style.left=left+'px';menu.style.top=top+'px';menu.style.display='block';menu.dataset.mid=mid;
-  event.stopPropagation();
+  window.event?.stopPropagation();
 }
 function closeMenu(){const m=document.getElementById('globalMenu');m.style.display='none';m.dataset.mid='';}
 document.addEventListener('click',()=>closeMenu());
