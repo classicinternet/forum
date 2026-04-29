@@ -1,4 +1,743 @@
-<!DOCTYPE html><html><head><script>
-if(location.pathname.endsWith('.xml')){location.replace('https://classicforum.indiachan.workers.dev/sitemap.xml');}
-else{sessionStorage.setItem('spa_redirect',location.pathname+location.search);location.replace('/forum/');}
-</script></head></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>ClassicInternetForum | It's a meeting place for the community.</title>
+<meta name="description" id="metaDesc" content="ClassicInternetForum: It's a meeting place for the community.">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="https://classicinternet.github.io/forum/sitemap.xml">
+<link rel="canonical" id="canonicalUrl" href="https://classicinternet.github.io/forum/">
+<meta property="og:title" id="ogTitle" content="ClassicInternetForum | It's a meeting place for the community.">
+<meta property="og:description" id="ogDesc" content="ClassicInternetForum: It's a meeting place for the community.">
+<meta property="og:url" id="ogUrl" content="https://classicinternet.github.io/forum/">
+<meta property="og:type" content="website">
+<script type="application/ld+json" id="seoSchema"></script>
+<link rel="icon" type="image/png" href="https://ui-avatars.com/api/?name=CiF&background=1a1a1a&color=fff&font-size=0.5">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+*{box-sizing:border-box}
+body{background:#000;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden}
+.glass{background:rgba(26,26,26,.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);position:relative}
+.glass-hover{transition:all .3s cubic-bezier(.4,0,.2,1)}
+.glass-hover:hover{background:rgba(40,40,40,1);border-color:rgba(255,255,255,.3);transform:translateY(-3px)}
+.thread-number{position:absolute;top:-10px;left:20px;background:#333;color:#fff;font-size:11px;font-weight:900;padding:4px 10px;border-radius:6px;box-shadow:0 4px 15px rgba(0,0,0,.5);z-index:20;border:1px solid rgba(255,255,255,.2)}
+.post-img{max-width:200px;max-height:200px;object-fit:contain;border-radius:12px;margin-top:12px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in;display:block;transition:all .15s ease}
+.post-img.expanded{max-width:100%;max-height:none;cursor:zoom-out}
+.thumb-box{width:85px;height:85px;min-width:85px;border-radius:12px;overflow:hidden;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.thumb-img{width:100%;height:100%;object-fit:cover;opacity:.9}
+.img-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.img-grid .post-img{margin-top:0}
+.post-img-wrap{position:relative;display:inline-block;margin-top:12px}
+.img-grid .post-img-wrap{margin-top:0}
+.post-img-wrap .post-img{margin-top:0;display:block}
+.img-open-btn{position:absolute;top:6px;right:6px;width:22px;height:22px;background:rgba(0,0,0,.55);border-radius:6px;color:#fff;font-size:11px;text-decoration:none;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;backdrop-filter:blur(4px)}
+.post-img-wrap:hover .img-open-btn{opacity:1}
+@media(hover:none){.img-open-btn{opacity:.7}}
+.sticky-tag{background:#fff;color:#000;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:900;margin-right:6px}
+.nsfw-tag{background:#ef4444;color:#fff;padding:2px 6px;border-radius:4px;font-size:8px;font-weight:900;margin-right:6px}
+.admin-badge{background:transparent;color:#00f3ff;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:900;letter-spacing:.15em;margin-right:4px;text-shadow:0 0 5px #00f3ff,0 0 10px #00f3ff;border:1px solid rgba(0,243,255,.3)}
+input,textarea{background:#1a1a1a !important;border:1px solid rgba(255,255,255,.1) !important;color:#fff !important;transition:all .3s}
+input:focus,textarea:focus{border-color:#fff !important;outline:none}
+input[type="checkbox"]{background:#1a1a1a !important;border:1px solid rgba(255,255,255,.2) !important;width:16px !important;height:16px !important;border-radius:4px !important;cursor:pointer;accent-color:#ef4444}
+.clickable-id{cursor:pointer;transition:color .2s}
+.clickable-id:hover{color:#3b82f6;text-decoration:underline}
+.greentext{color:#3b82f6 !important}
+.quote-link{color:#3b82f6;font-weight:700;cursor:pointer;text-decoration:none}
+.quote-link:hover{text-decoration:underline}
+.backlinks{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.backlink-pill{font-size:9px;font-weight:900;color:#94a3b8;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:3px 10px;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.05em}
+.backlink-pill:hover{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.4);color:#3b82f6}
+.post-highlight{border-color:rgba(59,130,246,.5) !important;background:rgba(59,130,246,.05) !important}
+.link-preview{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:5px 10px;margin:3px 0;text-decoration:none;transition:all .2s;overflow:hidden;max-width:min(360px,100%);vertical-align:middle}
+.link-preview:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15)}
+.link-preview-favicon{width:16px;height:16px;border-radius:3px;object-fit:contain;flex-shrink:0}
+.link-preview-text{min-width:0;flex:1}
+.link-preview-title{font-size:10px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.link-preview-url{font-size:8px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nsfw-wrap{position:relative;border-radius:16px;overflow:hidden;cursor:pointer;margin-top:8px}
+.nsfw-wrap.blurred>.nsfw-inner{filter:blur(20px);pointer-events:none;user-select:none}
+.nsfw-reveal{display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:5}
+.nsfw-wrap.blurred .nsfw-reveal{display:flex}
+.nsfw-reveal span{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#fff;background:rgba(239,68,68,.85);padding:8px 18px;border-radius:999px}
+.site-banner{background:#be0000;border-bottom:2px solid #ff2222;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:8000}
+.site-banner-text{font-size:11px;font-weight:700;line-height:1.5;flex:1}
+.site-banner-close{background:rgba(0,0,0,.25);border:none;color:#fff;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+.site-banner-close:hover{background:rgba(0,0,0,.45)}
+.thread-banner{background:#7f0000;border:1px solid #be0000;border-radius:12px;padding:10px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.thread-banner-text{font-size:11px;font-weight:700;color:#fff;flex:1}
+.thread-banner-close{background:rgba(0,0,0,.2);border:none;color:#fff;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#searchBar{position:relative;max-width:420px;width:100%}
+#searchInput{width:100%;padding:10px 36px 10px 38px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(255,255,255,.05) !important;border:1px solid rgba(255,255,255,.1) !important;color:#fff !important}
+#searchInput:focus{background:rgba(255,255,255,.08) !important;border-color:rgba(255,255,255,.25) !important}
+#searchIcon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#555;font-size:12px;pointer-events:none}
+#searchClear{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:none;background:none;border:none;color:#888;cursor:pointer;font-size:11px}
+#searchResults{position:absolute;top:calc(100% + 8px);left:0;right:0;background:rgba(18,18,18,.99);border:1px solid rgba(255,255,255,.1);border-radius:20px;z-index:9990;overflow:hidden;backdrop-filter:blur(20px);box-shadow:0 20px 60px rgba(0,0,0,.9);display:none;max-height:400px;overflow-y:auto}
+.search-result-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .15s}
+.search-result-item:last-child{border-bottom:none}
+.search-result-item:hover{background:rgba(255,255,255,.05)}
+.search-result-title{font-size:11px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.03em;margin-bottom:3px}
+.search-result-snippet{font-size:10px;color:#666;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.search-highlight{color:#fff;background:rgba(59,130,246,.25);border-radius:2px;padding:0 2px}
+.search-empty{padding:24px;text-align:center;color:#444;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+#adminDot{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:9500;background:rgba(18,18,18,.95);border:1px solid rgba(255,255,255,.1);border-right:none;border-radius:12px 0 0 12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all .2s;backdrop-filter:blur(10px)}
+#adminDot:hover{background:rgba(30,30,30,.99);border-color:rgba(255,255,255,.2)}
+#adminDot span{display:block;width:4px;height:4px;border-radius:50%;background:#444;transition:background .2s}
+#adminDot:hover span{background:#888}
+#adminPanel{display:none;position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:9499;width:220px;background:rgba(12,12,12,.99);border:1px solid rgba(255,255,255,.12);border-right:none;border-radius:16px 0 0 16px;overflow:hidden;backdrop-filter:blur(20px);box-shadow:-20px 0 60px rgba(0,0,0,.9)}
+#adminPanel .panel-title{padding:14px 16px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#555;border-bottom:1px solid rgba(255,255,255,.05)}
+#adminPanel button{display:block;width:100%;padding:12px 16px;text-align:left;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;background:transparent;color:#fff;border:none;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:background .15s}
+#adminPanel button:last-child{border-bottom:none}
+#adminPanel button:hover{background:rgba(255,255,255,.05)}
+#adminPanel button.warn{color:#fbbf24}
+#adminPanel button.danger{color:#f87171}
+#globalMenu{display:none;position:fixed;z-index:99999;width:190px;background:rgba(12,12,12,.99);border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.98);overflow:hidden;backdrop-filter:blur(20px)}
+#globalMenu button{display:block;width:100%;padding:13px 16px;text-align:left;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;background:transparent;color:#fff;border:none;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .15s}
+#globalMenu button:last-child{border-bottom:none}
+#globalMenu button:hover{background:rgba(255,255,255,.06)}
+#globalMenu button.danger{color:#f87171}
+#globalMenu button.warn{color:#fbbf24}
+#toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(18,18,18,.97);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:11px;font-weight:700;padding:12px 24px;border-radius:999px;z-index:99998;opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);pointer-events:none;backdrop-filter:blur(20px);white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.success{border-color:rgba(74,222,128,.4)}
+#toast.error{border-color:rgba(248,113,113,.4)}
+#newRepliesBanner{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:rgba(26,26,26,.97);border-bottom:1px solid rgba(255,255,255,.1);backdrop-filter:blur(20px);padding:10px 20px;text-align:center;cursor:pointer}
+#newRepliesBanner span{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:#fff}
+#refreshBtn{display:none;position:fixed;top:16px;right:56px;z-index:9000;background:rgba(20,20,20,.95);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;padding:8px 14px;border-radius:999px;cursor:pointer;backdrop-filter:blur(10px);transition:all .2s}
+#refreshBtn:hover{background:rgba(40,40,40,.99);border-color:rgba(255,255,255,.3)}
+#uploadPreview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.preview-item{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
+.preview-item img,.preview-item video{width:100%;height:100%;object-fit:cover}
+.preview-item button{position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(0,0,0,.7);border:none;border-radius:50%;color:#fff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.page-btn{padding:6px 14px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase;border:1px solid rgba(255,255,255,.1);background:transparent;color:#94a3b8;cursor:pointer;transition:all .2s}
+.page-btn:hover,.page-btn.active{background:#fff;color:#000;border-color:#fff}
+.page-btn:disabled{opacity:.3;cursor:not-allowed}
+@keyframes pulse-border{0%,100%{border-color:rgba(255,255,255,.1)}50%{border-color:rgba(255,255,255,.4)}}
+.optimistic{animation:pulse-border 1.5s ease infinite;opacity:.65}
+.flair-ent{background:#7c3aed;color:#fff}.flair-pol{background:#dc2626;color:#fff}.flair-gen{background:#2563eb;color:#fff}.flair-media{background:#d97706;color:#fff}.flair-tech{background:#059669;color:#fff}
+.flair-tag{padding:2px 7px;border-radius:4px;font-size:8px;font-weight:900;margin-right:6px;text-transform:uppercase}
+.tab-btn{padding:7px 16px;border-radius:999px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;border:1px solid rgba(255,255,255,.1);background:transparent;color:#555;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+.tab-btn.active{background:#fff;color:#000;border-color:#fff}
+.sort-sel{background:#111;border:1px solid rgba(255,255,255,.1);color:#fff;font-size:9px;font-weight:900;padding:7px 12px;border-radius:999px;cursor:pointer;outline:none}
+.storage-bar{height:4px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+.storage-bar-fill{height:100%;border-radius:999px;transition:width .6s ease;background:#fff}
+.storage-bar-fill.warn{background:#fbbf24}.storage-bar-fill.danger{background:#f87171}
+.video-preview{width:320px;max-width:100%;aspect-ratio:16/9;background:#111;border-radius:12px;border:1px solid rgba(255,255,255,.1);margin-top:12px;overflow:hidden;position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.video-preview:hover{background:#1a1a1a;border-color:rgba(255,255,255,.3)}
+.video-preview i{font-size:32px;color:rgba(255,255,255,.5);transition:transform .2s}
+.video-preview:hover i{transform:scale(1.1);color:#fff}
+.video-preview-label{position:absolute;bottom:8px;left:10px;font-size:9px;font-weight:900;text-transform:uppercase;color:rgba(255,255,255,.4);letter-spacing:.1em}
+</style>
+</head>
+<body class="pb-32">
+<div id="siteBannerEl" style="display:none">
+  <div class="site-banner">
+    <div class="site-banner-text" id="siteBannerText"></div>
+    <button class="site-banner-close" onclick="closeSiteBanner()">✕</button>
+  </div>
+</div>
+<div id="globalMenu"></div>
+<div id="toast"></div>
+<div id="newRepliesBanner" onclick="dismissBanner()">
+  <span id="newRepliesText">↑ New replies — tap to refresh</span>
+  <span style="margin-left:12px;opacity:.4;font-size:9px;font-weight:900">✕</span>
+</div>
+<button id="refreshBtn" onclick="hardRefresh()"><i class="fa-solid fa-rotate-right mr-1"></i>Refresh</button>
+<div id="adminDot" onclick="toggleAdminPanel()" title="Admin Panel">
+  <span></span><span></span><span></span>
+</div>
+<div id="adminPanel">
+  <div class="panel-title">⚙ Admin Panel</div>
+  <button onclick="adminSetSiteBanner()">📢 Set Site Banner</button>
+  <button onclick="adminClearSiteBanner()" class="warn">🗑 Clear Site Banner</button>
+</div>
+
+<div class="max-w-2xl mx-auto px-4">
+  <header class="py-10">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div onclick="navTo('/forum/')" class="cursor-pointer group min-w-0 flex-1">
+        <h1 class="text-white font-black text-[clamp(14px,4vw,20px)] tracking-tighter group-hover:text-slate-400 transition-colors break-all leading-tight">ClassicInternet.github.io/FORUM</h1>
+        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em]">It's a meeting place for the community.</span>
+      </div>
+      <button onclick="openModal(true)" class="bg-white text-black px-6 py-3 rounded-full font-black text-[10px] tracking-widest uppercase shadow-2xl hover:bg-slate-200 transition-all w-full sm:w-auto flex-shrink-0">New Thread</button>
+    </div>
+    <div class="mt-5 relative" id="searchBar">
+      <i class="fa-solid fa-magnifying-glass" id="searchIcon"></i>
+      <input id="searchInput" type="text" placeholder="Search threads and replies…" autocomplete="off" maxlength="50">
+      <button id="searchClear" onclick="clearSearch()">✕</button>
+      <div id="searchResults"></div>
+    </div>
+    <div class="mt-4 flex items-center gap-2 overflow-x-auto pb-1" style="scrollbar-width:none">
+      <button class="tab-btn active" onclick="setFlair(null,this)">All</button>
+      <button class="tab-btn" onclick="setFlair('ent',this)">Ent</button>
+      <button class="tab-btn" onclick="setFlair('pol',this)">Pol</button>
+      <button class="tab-btn" onclick="setFlair('gen',this)">Gen</button>
+      <button class="tab-btn" onclick="setFlair('media',this)">Media</button>
+      <button class="tab-btn" onclick="setFlair('tech',this)">Tech</button>
+      <div class="flex-1"></div>
+      <select class="sort-sel" onchange="setSort(this.value)" id="sortSel">
+        <option value="latest">Latest</option>
+        <option value="views">Views</option>
+        <option value="replies">Replies</option>
+      </select>
+    </div>
+  </header>
+  <div id="view-container" class="space-y-6"></div>
+  <footer id="mainFooter" class="mt-20 py-10 border-t border-white/5 text-center">
+    <div class="flex justify-center gap-6 mb-8 flex-wrap">
+      <span class="text-[10px] font-black uppercase text-slate-600 tracking-widest">Est. 2026</span>
+      <span class="text-[10px] font-black uppercase text-slate-500 tracking-widest">ClassicInternetForum</span>
+    </div>
+    <p class="text-[11px] text-slate-500 leading-relaxed max-w-md mx-auto mb-6">ClassicInternetForum is a law-abiding platform. All posts are user-generated.</p>
+    <div class="glass p-4 rounded-2xl inline-block mb-4 w-full max-w-xs">
+      <div class="flex justify-between items-center mb-1"><span class="text-[9px] font-black text-slate-500 uppercase tracking-tighter">Storage Health</span><span id="storageLabel" class="text-[9px] font-black text-slate-500">—</span></div>
+      <div class="storage-bar"><div class="storage-bar-fill" id="storageBarFill" style="width:0%"></div></div>
+      <div class="flex justify-between mt-2"><span id="storageThreads" class="text-[8px] text-slate-600 font-bold">— threads</span><span id="storageCapacity" class="text-[8px] text-slate-600 font-bold">— max</span></div>
+    </div>
+    <div class="glass p-4 rounded-2xl inline-block mb-6">
+      <span class="text-[9px] font-bold text-slate-500 block mb-1 uppercase tracking-tighter">Takedown / Content Removal</span>
+      <a href="mailto:JefferyEpsteinMossad@proton.me" class="text-[10px] font-black text-white hover:text-slate-400 transition-colors">JefferyEpsteinMossad@proton.me</a>
+    </div>
+  </footer>
+</div>
+<div id="postModal" class="hidden fixed inset-0 bg-black/90 z-[1000] flex items-end sm:items-center justify-center backdrop-blur-md">
+  <div class="glass w-full max-w-lg rounded-t-[2rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col" style="max-height:92dvh;max-height:92vh">
+    <div class="flex justify-between items-center px-6 pt-5 pb-3 flex-shrink-0">
+      <span id="modalTitle" class="text-[11px] font-black text-white uppercase tracking-widest">New Transmission</span>
+      <button onclick="closeModal()" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="overflow-y-auto flex-1 px-6 pb-6">
+      <input id="inpTitle" type="text" maxlength="70" placeholder="Subject (Max 70)" class="w-full p-4 rounded-2xl mb-3 text-sm font-bold">
+      <div class="relative mb-4">
+        <textarea id="inpContent" maxlength="2000" placeholder="Write your message here…
+Tips:
+  > line starts with > → blue text
+  >>PostNo. → quote & link a reply
+  Ctrl+Enter → submit
+  Paste image/video URL here to embed
+  Links show site previews automatically
+  NSFW checkbox blurs your post & media
+  Max 2000 characters" class="w-full p-4 rounded-2xl outline-none text-sm leading-relaxed whitespace-pre-wrap" style="min-height:120px;height:28vmax;max-height:220px;resize:none"></textarea>
+        <span id="charCount" class="absolute bottom-3 right-4 text-[9px] font-bold text-slate-600">0 / 2000</span>
+      </div>
+      <div class="mb-3">
+        <p class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">Media <span class="normal-case text-slate-600 font-normal">(up to 10 images)</span></p>
+        <div class="flex flex-wrap gap-2">
+          <input id="inpImageLink" type="url" placeholder="Paste image/video URL..." class="flex-1 p-3 rounded-xl text-xs font-bold min-w-[140px]">
+          <button onclick="document.getElementById('fileInput').click()" class="bg-slate-800 text-white px-3 py-2.5 rounded-xl text-[9px] font-black uppercase border border-white/10">Upload Images</button>
+        </div>
+        <input type="file" id="fileInput" class="hidden" accept="image/*" multiple onchange="handleFileUpload(this)">
+        <p class="text-[9px] text-slate-600 mt-2 font-bold">For videos: upload to <a href="https://catbox.moe" target="_blank" rel="noopener" class="text-slate-400 underline">catbox.moe</a> → paste the link above or in the post body.</p>
+        <div id="uploadPreview"></div>
+        <p id="uploadStatus" class="text-[9px] mt-2 font-bold text-white hidden"></p>
+      </div>
+      <label class="flex items-center gap-3 mb-4 cursor-pointer select-none w-fit">
+        <input type="checkbox" id="inpNsfw">
+        <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Mark as NSFW <span class="text-red-400">(blurs content)</span></span>
+      </label>
+      <div class="mb-4" id="flairSection" style="border:1px solid transparent;border-radius:16px;padding:10px;margin:-10px;transition:border-color .3s">
+        <p class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-widest">Flair</p>
+        <div class="flex flex-wrap gap-2">
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="" checked class="accent-white"><span class="text-[10px] font-bold text-slate-400">None</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="ent" class="accent-purple-500"><span class="flair-tag flair-ent">Ent</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="pol" class="accent-red-500"><span class="flair-tag flair-pol">Pol</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="gen" class="accent-blue-500"><span class="flair-tag flair-gen">Gen</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="media" class="accent-yellow-500"><span class="flair-tag flair-media">Media</span></label>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="flair" value="tech" class="accent-green-500"><span class="flair-tag flair-tech">Tech</span></label>
+        </div>
+      </div>
+      <div class="flex justify-center mb-4">
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAC_1Q9M2a470-hnw" data-callback="onCaptchaSuccess"></div>
+      </div>
+      <button id="submitBtn" onclick="submitPost()" class="bg-white text-black w-full py-4 rounded-[1.25rem] font-black uppercase tracking-widest hover:bg-slate-200 transition-all opacity-50 cursor-not-allowed" disabled>Transmit Message</button>
+    </div>
+  </div>
+</div>
+<script>
+const W='https://classicforum.indiachan.workers.dev/';
+const CACHE_TTL=20000,POLL_MS=60000;
+let isVerified=false,captchaToken=null;
+const _cache={},_etags={},_pending={},_ogCache={};
+let _imgs=[];
+const _ms={};let _mc=0;
+const reg=items=>{const id='mx'+(++_mc);_ms[id]=items;return id;};
+let _tid=null,_tslug=null,_trc=0,_pg=1,_bi=null,_flair=null,_sort='latest';
+const BASE='/forum';
+const makeSlug=(title,id)=>(title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')+'-'+id;
+const idFromSlug=s=>s.split('-').pop();
+const navTo=path=>{history.pushState({},null,path);router();};
+const cGet=k=>{const e=_cache[k];return e&&Date.now()-e.ts<CACHE_TTL?e.d:null;};
+const cSet=(k,d)=>{_cache[k]={d,ts:Date.now()};};
+const cDel=k=>delete _cache[k];
+const cClr=()=>Object.keys(_cache).forEach(k=>delete _cache[k]);
+let _tt;
+const toast=(msg,type='info')=>{const el=document.getElementById('toast');el.textContent=msg;el.className='show '+type;clearTimeout(_tt);_tt=setTimeout(()=>{el.className='';},3200);};
+const FLAIRS={ent:'#7c3aed',pol:'#dc2626',gen:'#2563eb',media:'#d97706',tech:'#059669'};
+const flairTag=f=>f?`<span class="flair-tag flair-${f}">${f}</span>`:'';
+
+function updateSEO(type, data) {
+  const canonicalUrl = window.location.href;
+  document.getElementById('canonicalUrl').href = canonicalUrl;
+  document.getElementById('ogUrl').content = canonicalUrl;
+  const descMeta = document.getElementById('metaDesc');
+  const ogDesc = document.getElementById('ogDesc');
+  const ogTitle = document.getElementById('ogTitle');
+  const schemaEl = document.getElementById('seoSchema');
+
+  if (type === 'board') {
+    const title = "ClassicInternetForum | It's a meeting place for the community.";
+    const desc = "ClassicInternetForum: It's a meeting place for the community.";
+    document.title = title;
+    if(ogTitle) ogTitle.content = title;
+    if(descMeta) descMeta.content = desc;
+    if(ogDesc) ogDesc.content = desc;
+    if(schemaEl) schemaEl.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "url": "https://classicinternet.github.io/forum/",
+      "name": "ClassicInternetForum"
+    });
+  } else if (type === 'thread') {
+    const title = `${esc(data.title)} | ClassicInternetForum`;
+    const opContent = data.op?.content || data.replies?.[0]?.content || '';
+    const desc = opContent.substring(0, 150).replace(/[\n\r]/g, ' ') + (opContent.length > 150 ? '...' : '');
+    document.title = title;
+    if(ogTitle) ogTitle.content = title;
+    if(descMeta) descMeta.content = desc;
+    if(ogDesc) ogDesc.content = desc;
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "DiscussionForumPosting",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": canonicalUrl
+      },
+      "headline": data.title,
+      "articleBody": opContent,
+      "author": {
+        "@type": "Person",
+        "name": data.op?.userId || data.replies?.[0]?.userId || "Anonymous"
+      },
+      "interactionStatistic": {
+        "@type": "InteractionCounter",
+        "interactionType": "https://schema.org/CommentAction",
+        "userInteractionCount": data.totalReplies || data.replies?.length || 0
+      }
+    };
+    const opImg = data.op?.image || data.op?.images?.[0] || data.replies?.[0]?.image || data.replies?.[0]?.images?.[0];
+    if(opImg) schema.image = opImg;
+    if(schemaEl) schemaEl.textContent = JSON.stringify(schema);
+  }
+}
+
+function setFlair(f,btn){_flair=f;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(f)navTo(`${BASE}/${f}/`);else navTo(`${BASE}/`);cClr();}
+function setSort(v){_sort=v;cClr();router();}
+async function loadStorage(){
+  try{
+    const r=await fetch(`${W}api/storage`);const d=await r.json();
+    const pct=Math.round(d.used_bytes/d.total_limit*100);
+    const fill=document.getElementById('storageBarFill');
+    fill.style.width=pct+'%';fill.className='storage-bar-fill'+(pct>95?' danger':pct>80?' warn':'');
+    document.getElementById('storageLabel').textContent=pct+'%';
+    document.getElementById('storageThreads').textContent=d.thread_count+' threads';
+    document.getElementById('storageCapacity').textContent=d.max_capacity+' max';
+  }catch{}
+}
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const BANNER_KEY='cif_banner_ts';
+async function loadSiteBanner(){
+  try{
+    const r=await fetch(`${W}?banner=true&t=${Date.now()}`);
+    const d=await r.json();
+    if(d&&d.text&&localStorage.getItem(BANNER_KEY)!==String(d.ts)){
+      document.getElementById('siteBannerText').textContent=d.text;
+      document.getElementById('siteBannerEl').style.display='block';
+    } else document.getElementById('siteBannerEl').style.display='none';
+  }catch{}
+}
+function closeSiteBanner(){document.getElementById('siteBannerEl').style.display='none';localStorage.setItem(BANNER_KEY,Date.now());}
+let _apo=false;
+function toggleAdminPanel(){
+  _apo=!_apo;
+  document.getElementById('adminPanel').style.display=_apo?'block':'none';
+  document.getElementById('adminDot').style.right=_apo?'220px':'0';
+}
+document.addEventListener('click',e=>{
+  if(_apo&&!document.getElementById('adminPanel').contains(e.target)&&!document.getElementById('adminDot').contains(e.target)){
+    _apo=false;document.getElementById('adminPanel').style.display='none';document.getElementById('adminDot').style.right='0';
+  }
+});
+async function adminSetSiteBanner(){const p=prompt('Admin Password:');if(!p)return;const t=prompt('Banner text (empty to clear):');if(t===null)return;const r=await api('','PATCH',{action:'setBanner',text:t||null},{'X-Admin-Pass':p});if(r?.success){toast(t?'Banner set.':'Cleared.','success');loadSiteBanner();}else toast('Failed.','error');}
+async function adminClearSiteBanner(){const p=prompt('Admin Password:');if(!p)return;const r=await api('','PATCH',{action:'setBanner',text:null},{'X-Admin-Pass':p});if(r?.success){document.getElementById('siteBannerEl').style.display='none';toast('Cleared.','success');}else toast('Failed.','error');}
+async function adminSetThreadBanner(tId){const p=prompt('Admin Password:');if(!p)return;const t=prompt('Thread banner (empty to clear):');if(t===null)return;const r=await api(`?id=${tId}`,'PATCH',{action:'setThreadBanner',text:t||null},{'X-Admin-Pass':p});if(r?.success){cClr();toast(t?'Banner set.':'Cleared.','success');router();}else toast('Failed.','error');}
+async function adminSetFlair(tId){
+  const p=prompt('Admin Password:');if(!p)return;
+  const f=prompt('Choose flair:\nent | pol | gen | media | tech\n(leave empty to clear)');
+  if(f===null)return;
+  const valid=['ent','pol','gen','media','tech'];
+  if(f&&!valid.includes(f)){toast('Invalid flair.','error');return;}
+  const r=await fetch(`${W}api/admin/update-flair`,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Pass':p},body:JSON.stringify({threadId:tId,flair:f||null})});
+  const d=await r.json();
+  if(d.success){cClr();toast('Flair updated.','success');router();}else toast('Failed.','error');
+}
+let _sd=null;
+document.getElementById('searchInput').addEventListener('input',function(){
+  const q=this.value.trim();
+  document.getElementById('searchClear').style.display=q?'block':'none';
+  if(q.length<2){closeSearch();return;}
+  clearTimeout(_sd);_sd=setTimeout(()=>runSearch(q),400);
+});
+document.getElementById('searchInput').addEventListener('keydown',e=>{if(e.key==='Escape')clearSearch();});
+function clearSearch(){document.getElementById('searchInput').value='';document.getElementById('searchClear').style.display='none';closeSearch();}
+function closeSearch(){document.getElementById('searchResults').style.display='none';}
+const hl=(t,q)=>{if(!t||!q)return esc(t||'');const rx=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');return esc(t).replace(rx,'<mark class="search-highlight">$1</mark>');};
+async function runSearch(q){
+  const sr=document.getElementById('searchResults');sr.style.display='block';
+  const ql=q.toLowerCase();
+  // Board index search
+  const br=(_bi||[]).filter(t=>t.title?.toLowerCase().includes(ql)||t.op?.content?.toLowerCase().includes(ql)).slice(0,15);
+  // Reply search — only from client cache, no new API calls
+  const tr=[];
+  Object.values(_cache).forEach(entry=>{
+    const d=entry.d;
+    if(d?.replies&&Array.isArray(d.replies)){
+      d.replies.forEach((r,i)=>{
+        if(r.content?.toLowerCase().includes(ql))
+          tr.push({id:r.id,content:r.content,seq:i+1,threadId:String(d.id),threadTitle:d.title||'Thread'});
+      });
+    }
+  });
+  if(!br.length&&!tr.length){sr.innerHTML=`<div class="search-empty">No results for "${esc(q)}"</div>`;return;}
+  let h='';
+  if(tr.length){
+    h+=`<div style="padding:8px 16px 4px;font-size:8px;font-weight:900;color:#444;text-transform:uppercase">Replies</div>`;
+    h+=tr.slice(0,20).map(r=>{const sl=makeSlug(r.threadTitle,r.threadId);return`<div class="search-result-item" onclick="navTo('${BASE}/thread/${sl}');setTimeout(()=>scrollToPost('${r.id}'),600);closeSearch()"><div class="search-result-title">${hl(r.threadTitle,q)} · Reply #${r.seq}</div><div class="search-result-snippet">${hl(r.content.slice(0,120),q)}</div></div>`;}).join('');
+  }
+  if(br.length){
+    if(tr.length)h+=`<div style="border-top:1px solid rgba(255,255,255,.05)"></div>`;
+    h+=`<div style="padding:8px 16px 4px;font-size:8px;font-weight:900;color:#444;text-transform:uppercase">Threads</div>`;
+    h+=br.map(t=>`<div class="search-result-item" onclick="navTo('${BASE}/thread/${makeSlug(t.title,t.id)}');closeSearch()"><div class="search-result-title">${hl(t.title||'Anonymous',q)}</div><div class="search-result-snippet">${hl((t.op?.content||'').slice(0,120),q)}</div></div>`).join('');
+  }
+  sr.innerHTML=h;
+}
+document.addEventListener('click',e=>{if(!document.getElementById('searchBar').contains(e.target))closeSearch();});
+function onCaptchaSuccess(token){isVerified=true;captchaToken=token;const b=document.getElementById('submitBtn');b.disabled=false;b.classList.remove('opacity-50','cursor-not-allowed');}
+
+// GitHub Pages 404 SPA redirect
+(()=>{const r=sessionStorage.getItem('spa_redirect');if(r){sessionStorage.removeItem('spa_redirect');history.replaceState(null,null,r);}})();
+// Backward-compat: old hash URLs → new path
+if(location.hash.startsWith('#thread/')){const p=location.hash.replace('#thread/','').split('/');history.replaceState(null,null,`${BASE}/thread/thread-${p[0]}${p[1]?'?page='+p[1]:''}`);}
+else if(location.hash==='#archive'){history.replaceState(null,null,`${BASE}/archive`);}
+document.getElementById('inpContent').addEventListener('input',function(){const n=this.value.length,el=document.getElementById('charCount');el.textContent=n+' / 2000';el.style.color=n>1800?'#f87171':n>1500?'#fbbf24':'';});
+document.getElementById('inpContent').addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter')submitPost();});
+async function handleFileUpload(inp){
+  const files=Array.from(inp.files).slice(0,10-_imgs.length);if(!files.length)return;
+  const s=document.getElementById('uploadStatus');s.innerText=`Uploading 0/${files.length}…`;s.classList.remove('hidden');
+  try{
+    const cfg=await api('?config=true');
+    for(let i=0;i<files.length;i++){
+      s.innerText=`Uploading ${i+1}/${files.length}…`;
+      const fd=new FormData();fd.append('image',files[i]);
+      const res=await fetch(`https://api.imgbb.com/1/upload?key=${cfg.imgbb}`,{method:'POST',body:fd});
+      const d=await res.json();
+      if(d.success){_imgs.push({url:d.data.url,thumb:d.data.thumb?.url||d.data.url});updatePreview();}
+    }
+    s.innerText=`✓ ${_imgs.length} image(s) ready`;setTimeout(()=>s.classList.add('hidden'),2000);
+  }catch{s.innerText='Upload error.';}
+  inp.value='';
+}
+const isCbVid=u=>u.match(/files\.catbox\.moe\/.+\.(mp4|webm|ogg)(\?.*)?$/i);
+const isImg=u=>u.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i);
+const isVid=u=>u.match(/\.(mp4|webm|ogg)(\?.*)?$/i);
+function updatePreview(){
+  document.getElementById('uploadPreview').innerHTML=_imgs.map((img,i)=>`<div class="preview-item">${(isCbVid(img.url)||isVid(img.url))?`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1a1a1a"><i class="fa-solid fa-film text-slate-400"></i></div>`:`<img src="${img.thumb||img.url}" alt="">`}<button onclick="removeImg(${i})">✕</button></div>`).join('');
+}
+function removeImg(i){_imgs.splice(i,1);updatePreview();}
+function resetImgs(){_imgs=[];document.getElementById('uploadPreview').innerHTML='';document.getElementById('uploadStatus').classList.add('hidden');document.getElementById('inpImageLink').value='';}
+function expandImg(el){
+  if(el.classList.contains('expanded')){el.classList.remove('expanded');return;}
+  el.src=el.dataset.full||el.src;
+  el.classList.add('expanded');
+}
+async function api(path='',method='GET',body=null,xh={}){
+  if(method==='GET'&&!body){const h=cGet(path);if(h!==null)return h;}
+  const sep=path.includes('?')?'&':'?';
+  const url=`${W}${path}${sep}t=${Date.now()}`;
+  const hdrs={...xh};
+  if(method==='GET'&&_etags[path])hdrs['If-None-Match']=_etags[path];
+  const opts={method,headers:hdrs};
+  if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body);}
+  try{
+    const res=await fetch(url,opts);
+    if(res.status===304)return cGet(path);
+    const etag=res.headers.get('ETag');if(etag)_etags[path]=etag;
+    const data=res.ok?await res.json():null;
+    if(method==='GET'&&data)cSet(path,data);
+    return data;
+  }catch{return null;}
+}
+const getDom=u=>{try{return new URL(u).hostname.replace('www.','');}catch{return u;}};
+const getFav=u=>{try{return`https://www.google.com/s2/favicons?domain=${new URL(u).hostname}&sz=16`;}catch{return'';}};
+function renderLP(url){
+  const dom=getDom(url),fav=getFav(url),short=url.length>45?url.slice(0,42)+'…':url;
+  const id='lp'+Math.random().toString(36).slice(2,8);
+  if(!_ogCache[url]){
+    _ogCache[url]=null;
+    fetch(`${W}og?url=${encodeURIComponent(url)}`).then(r=>r.json()).then(d=>{_ogCache[url]=d;const el=document.getElementById(id);if(el&&d.title)el.textContent=d.title;}).catch(()=>{});
+  }
+  const cached=_ogCache[url];const title=cached?.title||dom;
+  return`<a href="${url}" target="_blank" rel="noopener" class="link-preview"><img src="${fav}" class="link-preview-favicon" loading="lazy" onerror="this.style.display='none'"><div class="link-preview-text"><div class="link-preview-title" id="${id}">${esc(title)}</div><div class="link-preview-url">${esc(short)}</div></div></a>`;
+}
+function buildBL(replies){
+  const m={};
+  replies.forEach((r,idx)=>{[...(r.content||'').matchAll(/>>(\d{10,14})/g)].forEach(([,pid])=>{if(!m[pid])m[pid]=[];if(!m[pid].find(x=>x.id===r.id))m[pid].push({id:r.id,seq:idx+1});});});
+  return m;
+}
+function scrollToPost(pid){const el=document.getElementById('post-'+pid);if(!el)return;el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('post-highlight');setTimeout(()=>el.classList.remove('post-highlight'),2000);}
+
+function playVideo(el, embedUrl) {
+    el.innerHTML = `<iframe width="100%" height="100%" src="${embedUrl}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    el.style.cursor = 'default';
+}
+
+function procContent(content,replies){
+  const pids=new Set((replies||[]).map(r=>r.id));
+  let html=(content||'').split('\n').map(l=>l.startsWith('>')&&!l.startsWith('>>')?`<span class="greentext">${esc(l)}</span>`:esc(l)).join('\n');
+  html=html.replace(/&gt;&gt;(\d{10,14})/g,(m,pid)=>pids.has(pid)?`<a class="quote-link" onclick="scrollToPost('${pid}')">&gt;&gt;${pid}</a>`:`<span class="text-white font-bold">&gt;&gt;${pid}</span>`);
+  const embeds=[];
+  html=html.replace(/(https?:\/\/[^\s<"&]+)/g,(m,url)=>{
+    // YouTube detection
+    let ytId = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/\s]{11})/i);
+    if(ytId) {
+        const embedUrl = `https://www.youtube.com/embed/${ytId[1]}`;
+        embeds.push(`<div class="video-preview" onclick="playVideo(this, '${embedUrl}')"><i class="fa-brands fa-youtube"></i><span class="video-preview-label">YouTube · Click to play</span></div>`);
+        return '';
+    }
+    // Archive.org detection
+    let arcId = url.match(/archive\.org\/details\/([^\/\s]+)/i);
+    if(arcId) {
+        const embedUrl = `https://archive.org/embed/${arcId[1]}`;
+        embeds.push(`<div class="video-preview" onclick="playVideo(this, '${embedUrl}')"><i class="fa-solid fa-building-columns"></i><span class="video-preview-label">Archive.org · Click to play</span></div>`);
+        return '';
+    }
+    if(isImg(url)){embeds.push(`<div class="post-img-wrap"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="${url}" data-full="${url}" class="post-img lazyimg" onclick="expandImg(this)"><a href="${url}" target="_blank" rel="noopener" class="img-open-btn">↗</a></div>`);return'';}
+    if(isCbVid(url)||isVid(url)){embeds.push(`<video controls class="post-img" style="max-width:100%;max-height:none;border-radius:12px;margin-top:12px"><source src="${url}"></video>`);return'';}
+    return renderLP(url);
+  });
+  html=html.replace(/\n{3,}/g,'\n\n').replace(/^\n+|\n+$/g,'');
+  return{html,embeds};
+}
+function toggleNsfw(el){el.classList.toggle('blurred');}
+function renderPostMedia(post){
+  const imgs=(post.images?.length)?post.images:(post.image?[post.image]:[]);
+  const thumbs=post.thumbs||[];
+  if(!imgs.length)return'';
+  return`<div class="img-grid">${imgs.map((src,i)=>(isCbVid(src)||isVid(src))?`<video controls class="post-img" style="max-width:100%;max-height:none;border-radius:12px"><source src="${src}"></video>`:`<div class="post-img-wrap"><img src="${thumbs[i]||src}" data-full="${src}" class="post-img lazyimg" onclick="expandImg(this)"><a href="${src}" target="_blank" rel="noopener" class="img-open-btn">↗</a></div>`).join('')}</div>`;
+}
+function getThumb(op){
+  if(!op||(!op.image&&!op.images?.length))return`<div class="thumb-box flex items-center justify-center text-[10px] text-slate-700 font-black">TXT</div>`;
+  const src=op.image||op.images?.[0]||'';
+  if(isCbVid(src)||isVid(src))return`<div class="thumb-box flex items-center justify-center"><i class="fa-solid fa-film text-slate-400 text-lg"></i></div>`;
+  return`<div class="thumb-box"><img src="${op.thumb||src}" class="thumb-img" loading="lazy" onerror="this.src='https://placehold.co/85x85?text=IMG'"></div>`;
+}
+function openMenu(btn,mid){
+  const items=_ms[mid];if(!items)return;
+  const menu=document.getElementById('globalMenu');
+  if(menu.style.display==='block'&&menu.dataset.mid===mid){closeMenu();return;}
+  menu.innerHTML='';
+  items.forEach(item=>{const b=document.createElement('button');b.textContent=item.label;if(item.danger)b.className='danger';if(item.warn)b.className='warn';b.addEventListener('click',()=>{closeMenu();item.fn();});menu.appendChild(b);});
+  const r=btn.getBoundingClientRect(),mh=items.length*46;
+  let left=r.right-190,top=r.bottom+6;
+  if(left<8)left=8;if(top+mh>window.innerHeight-16)top=r.top-mh-6;
+  menu.style.left=left+'px';menu.style.top=top+'px';menu.style.display='block';menu.dataset.mid=mid;
+  event.stopPropagation();
+}
+function closeMenu(){const m=document.getElementById('globalMenu');m.style.display='none';m.dataset.mid='';}
+document.addEventListener('click',()=>closeMenu());
+function showNRB(n){document.getElementById('newRepliesText').textContent=`↑ ${n} new repl${n===1?'y':'ies'} — tap to refresh`;document.getElementById('newRepliesBanner').style.display='block';}
+function dismissBanner(){document.getElementById('newRepliesBanner').style.display='none';if(_tid){cDel(`?id=${_tid}&page=${_pg}`);router();}}
+window.addEventListener('scroll',()=>{document.getElementById('refreshBtn').style.display=window.scrollY<80?'block':'none';});
+async function hardRefresh(){cClr();await router();toast('Refreshed','success');}
+function renderBoard(threads){
+  updateSEO('board');
+  document.getElementById('mainFooter').style.display='block';
+  document.getElementById('newRepliesBanner').style.display='none';
+  _tid=null;_bi=threads;
+  const filtered=threads.filter(t=>!t.locked);
+  if(!filtered.length){document.getElementById('view-container').innerHTML=`<div class="text-center py-20 text-slate-600"><i class="fa-solid fa-ghost text-4xl mb-4 block"></i><p class="text-[11px] font-bold uppercase tracking-widest">No threads yet. Be the first.</p></div>`;return;}
+  const mkCard=(t,i,num=true)=>{
+    const mId=reg([{label:'Report Thread',fn:()=>act('report',t.id)},{label:'Toggle Sticky',fn:()=>act('sticky',t.id)},{label:t.locked?'Unlock':'Lock',fn:()=>act('lock',t.id)},{label:'Set Flair',warn:true,fn:()=>adminSetFlair(t.id)},{label:'Set Thread Banner',warn:true,fn:()=>adminSetThreadBanner(t.id)},{label:'Delete',danger:true,fn:()=>act('delete',t.id)}]);
+    const op=t.op||t.replies?.[0]||{};
+    return`<div onclick="navTo('${BASE}/thread/${makeSlug(t.title,t.id)}')" class="relative glass glass-hover p-5 rounded-[2.5rem] flex gap-5 items-center cursor-pointer">${num?`<div class="thread-number">#${i+1}</div>`:''}<div class="flex-shrink-0">${getThumb(op)}</div><div class="flex-1 min-w-0"><div class="flex items-center mb-1 flex-wrap gap-1">${t.sticky?'<span class="sticky-tag">STICKY</span>':''}${t.locked?'<i class="fa-solid fa-lock text-[10px] text-red-500 mr-1"></i>':''}${op.nsfw?'<span class="nsfw-tag">NSFW</span>':''}${flairTag(t.flair)}<h2 class="text-sm font-black text-white uppercase tracking-tight truncate">${esc(t.title||'Anonymous')}</h2><span class="ml-2 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.replyCount||0}</span><span class="ml-1 text-[10px] font-bold text-slate-600 bg-white/5 px-2 py-0.5 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0}</span></div><p class="text-slate-500 text-[11px] line-clamp-2 opacity-80">${esc(op.content||'')}</p></div><button onclick="openMenu(this,'${mId}')" class="p-3 text-slate-700 hover:text-white flex-shrink-0"><i class="fa-solid fa-ellipsis-v"></i></button></div>`;
+  };
+  let trendHtml='';
+  const tr=[...filtered].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);
+  if(tr.some(t=>(t.views||0)>0))trendHtml=`<div class="mb-8"><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">🔥 Trending</div><div class="space-y-3">${tr.map(t=>mkCard(t,0,false)).join('')}</div></div><div class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 mb-3">All Threads</div>`;
+  document.getElementById('view-container').innerHTML=trendHtml+filtered.map((t,i)=>mkCard(t,i,true)).join('');
+  observeLazyImgs();
+}
+
+function renderThread(t,page){
+  updateSEO('thread', t);
+  document.getElementById('mainFooter').style.display='none';
+  document.getElementById('newRepliesBanner').style.display='none';
+  _tid=String(t.id);_tslug=makeSlug(t.title,t.id);_trc=t.totalReplies||t.replies?.length||0;_pg=page||t.page||1;
+  const tot=t.totalPages||1,cur=t.page||1;
+  const pending=(_pending[String(t.id)]||[]);
+  const replies=[...(t.replies||[])];
+  pending.forEach(p=>{if(!replies.find(r=>r.id===p.id))replies.push(p);});
+  const bl=buildBL(replies);
+  
+  const jumpToLast = replies.length > 5 ? `<button onclick="scrollToPost('${replies[replies.length-1].id}')" class="bg-white/5 hover:bg-white/10 text-slate-400 px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all mb-4"><i class="fa-solid fa-arrow-down mr-2"></i>Jump to Last Reply</button>` : '';
+
+  const pgHtml=tot>1?`<div class="flex items-center justify-center gap-2 py-6 flex-wrap"><button class="page-btn" onclick="goPage(1)" ${cur===1?'disabled':''}>1</button>${Array.from({length:tot},(_,i)=>i+1).filter(p=>p!==1 && p!==tot && (Math.abs(p-cur)<=1)).map((p,ix,arr)=>(ix===0 && p>2 ? `<span class="text-slate-700 font-black text-xs px-1">…</span>` : '') + `<button class="page-btn ${p===cur?'active':''}" onclick="goPage(${p})">${p}</button>` + (ix===arr.length-1 && p < tot-1 ? `<span class="text-slate-700 font-black text-xs px-1">…</span>` : '')).join('')}<button class="page-btn ${cur===tot?'active':''}" onclick="goPage(${tot})" ${cur===tot && tot===1 ? 'disabled':''}>${tot}</button><button class="page-btn" onclick="goPage(${cur+1})" ${cur===tot?'disabled':''}>Next</button></div>`:'';
+  
+  const bannerHtml=t.banner?`<div class="thread-banner" id="tBanner"><div class="thread-banner-text"><i class="fa-solid fa-bullhorn mr-2 opacity-70"></i>${esc(t.banner)}</div><button class="thread-banner-close" onclick="document.getElementById('tBanner').remove()">✕</button></div>`:'';
+  document.getElementById('view-container').innerHTML=`
+    <div class="flex justify-between items-center mb-6">
+      <button onclick="navTo('${BASE}/')" class="text-[10px] font-black uppercase text-slate-500 hover:text-white"><i class="fa-solid fa-chevron-left mr-2"></i>Return</button>
+      ${jumpToLast}
+    </div>
+    <div class="flex items-center gap-3 mb-4 flex-wrap"><h1 class="text-xl font-black text-white uppercase tracking-tighter m-0">${esc(t.title)} ${t.locked?'<i class="fa-solid fa-lock text-sm text-red-500 ml-2"></i>':''}</h1>${t.flair?`<span onclick="navTo('${BASE}/${t.flair}/')" class="flair-tag flair-${t.flair} cursor-pointer hover:opacity-80 transition-opacity" style="font-size:11px;padding:4px 10px;margin:0">${t.flair}</span>`:''}</div><div class="flex gap-3 mb-6"><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-eye mr-1 opacity-50"></i>${t.views||0} views</span><span class="text-[10px] font-bold text-slate-600 bg-white/5 px-3 py-1 rounded-full"><i class="fa-solid fa-comments mr-1 opacity-50"></i>${t.totalReplies||t.replies?.length||0} replies</span></div>
+    ${bannerHtml}${pgHtml}
+    <div class="space-y-6 pb-24">
+    ${replies.map((r,i)=>{
+      const{html:ch,embeds}=procContent(r.content,replies);
+      const isOpt=!!r._optimistic,isFirst=cur===1&&i===0;
+      const myBL=(bl[r.id]||[]).filter(b=>b.id!==r.id);
+      const blHtml=myBL.length?`<div class="backlinks">${myBL.map(b=>`<span class="backlink-pill" onclick="scrollToPost('${b.id}')">&gt;&gt;${r.id} #${b.seq}</span>`).join('')}</div>`:'';
+      const mId=reg([
+        {label:'Report',fn:()=>act('report',t.id,r.id)},
+        {label:'Edit Post',fn:()=>editPost(t.id,r.id)},
+        {label:'Toggle NSFW',warn:true,fn:()=>adminNsfw(t.id,r.id)},
+        {label:'Verify as Admin',warn:true,fn:()=>verifyAdmin(t.id,r.id)},
+        {label:'Set Thread Banner',warn:true,fn:()=>adminSetThreadBanner(t.id)},
+        {label:'Ban User',fn:()=>act('ban',null,null,r.userId)},
+        {label:'Delete Post',danger:true,fn:()=>act('delete',t.id,r.id)}
+      ]);
+      const nW=r.nsfw?`<div class="nsfw-wrap blurred" onclick="toggleNsfw(this)"><div class="nsfw-reveal"><span>⚠ NSFW — Click to reveal</span></div><div class="nsfw-inner">`:'';
+      const nC=r.nsfw?`</div></div>`:'';
+      const idBadge=r.verifiedAdmin?`<span class="admin-badge">⬡ ADMIN</span>`:`<span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider">ID:&nbsp;${esc(r.userId)}</span>`;
+      return`<article id="post-${r.id}" class="glass p-7 rounded-[2.5rem] ${isOpt?'optimistic':''}" style="transition:border-color .4s,background .4s">
+        <div class="flex justify-between items-start mb-4">
+          <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+            ${idBadge}
+            <span class="text-slate-700 text-[10px]">·</span>
+            <span onclick="quotePost('${r.id}')" class="text-[10px] font-black text-slate-400 clickable-id" title="Click to quote">No.${r.id}</span>
+            <span class="text-[9px] font-bold text-slate-700">${esc(r.time||'')}</span>
+            ${isFirst?'<span class="text-[8px] font-black bg-white/10 text-white px-2 py-0.5 rounded-full uppercase">OP</span>':''}
+            ${r.nsfw?'<span class="nsfw-tag">NSFW</span>':''}
+            ${isOpt?'<span class="text-[8px] font-bold text-slate-600 uppercase">Sending…</span>':''}
+          </div>
+          ${!isOpt?`<button onclick="openMenu(this,'${mId}')" class="text-slate-700 hover:text-white p-2 flex-shrink-0"><i class="fa-solid fa-ellipsis"></i></button>`:''}
+        </div>
+        ${blHtml}${nW}
+        <div class="text-slate-200 text-[14px] leading-relaxed whitespace-pre-wrap">${ch}</div>
+        ${embeds.join('')}${renderPostMedia(r)}
+        ${nC}
+      </article>`;
+    }).join('')}
+    </div>${pgHtml}
+    ${!t.locked?`<div class="fixed bottom-10 left-4 right-4 max-w-2xl mx-auto"><button onclick="openModal(false)" class="bg-white text-black w-full py-5 rounded-[2rem] font-black uppercase tracking-widest shadow-xl">Post Reply</button></div>`:''}
+  `;
+  observeLazyImgs();
+}
+
+function goPage(p){if(_tid&&_tslug){history.pushState({},'',`${BASE}/thread/${_tslug}${p>1?'?page='+p:''}`);router();}}
+function quotePost(pid){document.getElementById('inpContent').value+=`>>${pid}\n`;openModal(false);document.getElementById('inpContent').focus();}
+
+async function submitPost(){
+  if(!isVerified||!captchaToken){toast('Please complete the captcha.','error');return;}
+  const btn=document.getElementById('submitBtn');btn.disabled=true;btn.innerText='TRANSMITTING…';
+  const path=window.location.pathname;
+  const isReply = window._isReplyOverride;
+  const slug=path.startsWith(BASE+'/thread/')?path.replace(BASE+'/thread/','').split('?')[0]:'',threadId=isReply&&slug?idFromSlug(slug):null;
+  const content=document.getElementById('inpContent').value.trim();
+  const nsfw=document.getElementById('inpNsfw').checked;
+  const title=document.getElementById('inpTitle').value.trim();
+  const urlImg=document.getElementById('inpImageLink').value.trim();
+  const all=[..._imgs];if(urlImg&&!all.find(x=>x.url===urlImg))all.push({url:urlImg,thumb:urlImg});
+  const imgUrls=all.map(x=>x.url),thumbUrls=all.map(x=>x.thumb||x.url);
+  const flair=document.querySelector('input[name="flair"]:checked')?.value||null;
+
+  if(!isReply && (!title || !content || !flair)){
+    toast('Subject, body, and flair are mandatory.','error');
+    btn.disabled=false;btn.innerText='Transmit Message';
+    if(!flair) document.getElementById('flairSection').style.borderColor='rgba(248,113,113,.6)';
+    return;
+  }
+  document.getElementById('flairSection').style.borderColor='transparent';
+
+  const res=await api('','POST',{type:isReply?'reply':'thread',threadId,title:title||'Anonymous',content,nsfw,flair:flair||undefined,image:imgUrls[0]||'',thumb:thumbUrls[0]||'',images:imgUrls,thumbs:thumbUrls,token:captchaToken});
+  if(res?.success){
+    ['inpTitle','inpContent'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('inpNsfw').checked=false;
+    document.getElementById('charCount').textContent='0 / 2000';
+    resetImgs();isVerified=false;captchaToken=null;
+    btn.classList.add('opacity-50','cursor-not-allowed');btn.innerText='Transmit Message';
+    closeModal();cClr();
+    if(isReply&&threadId){
+      const opt={id:'_opt_'+Date.now(),content,nsfw,images:imgUrls,image:imgUrls[0]||'',thumbs:thumbUrls,thumb:thumbUrls[0]||'',userId:'········',time:new Date().toLocaleString(),_optimistic:true};
+      if(!_pending[threadId])_pending[threadId]=[];_pending[threadId].push(opt);
+      const c=cGet(`?id=${threadId}&page=${_pg}`);if(c)renderThread(c,_pg);
+      setTimeout(async()=>{const f=await api(`?id=${threadId}&page=${_pg}`);if(f){_pending[threadId]=[];renderThread(f,_pg);}},3000);
+    }else{toast('Thread posted! Redirecting…','success');const nid=res.threadId;const nd=await api('');if(nd){const nt=nd.find(x=>String(x.id)===String(nid));if(nt)setTimeout(()=>navTo(`${BASE}/thread/${makeSlug(nt.title,nid)}`),500);}}
+  }else{btn.disabled=false;btn.innerText='Transmit Message';toast('Failed: '+(res?.error||'Try again.'),'error');}
+}
+async function editPost(tId,rId){const p=prompt('Admin Pass:');if(!p)return;cDel(`?id=${tId}&page=${_pg}`);const t=await api(`?id=${tId}&page=${_pg}`);if(!t)return;const post=t.replies.find(r=>r.id===rId);if(!post)return;const nc=prompt('Edit content:',post.content);if(nc===null||nc===post.content)return;const r=await api(`?id=${tId}&replyId=${rId}`,'PATCH',{action:'edit',newContent:nc},{'X-Admin-Pass':p});if(r){cClr();toast('Edited.','success');router();}else toast('Failed.','error');}
+async function adminNsfw(tId,rId){const p=prompt('Admin Pass:');if(!p)return;const r=await api(`?id=${tId}&replyId=${rId}`,'PATCH',{action:'nsfw'},{'X-Admin-Pass':p});if(r){cClr();toast('NSFW toggled.','success');router();}else toast('Failed.','error');}
+async function verifyAdmin(tId,rId){const p=prompt('Admin Pass:');if(!p)return;const r=await api(`?id=${tId}&replyId=${rId}`,'PATCH',{action:'verifyAdmin'},{'X-Admin-Pass':p});if(r){cClr();toast('Admin badge toggled.','success');router();}else toast('Wrong password.','error');}
+async function act(type,tId,rId=null,uid=null){
+  if(type==='report'){const r=await api(`?id=${tId}${rId?'&replyId='+rId:''}`, 'PATCH',{action:'report'});if(r)toast('Reported.','success');return;}
+  const p=prompt('Admin Pass:');if(!p)return;
+  const H={'X-Admin-Pass':p};let r;
+  if(type==='sticky')r=await api(`?id=${tId}`,'PATCH',{action:'sticky'},H);
+  else if(type==='lock')r=await api(`?id=${tId}`,'PATCH',{action:'lock'},H);
+  else if(type==='ban')r=await api('','POST',{action:'ban',targetUserId:uid,token:'admin-action'},H);
+  else r=await api(`?id=${tId}${rId?'&replyId='+rId:''}`, 'DELETE',null,H);
+  if(r){cClr();router();}else toast('Action failed.','error');
+}
+function openModal(forceNew = null){
+  const isReply = forceNew === false || (forceNew !== true && window.location.pathname.startsWith(BASE+'/thread/'));
+  window._isReplyOverride = isReply;
+  document.getElementById('postModal').classList.remove('hidden');
+  document.getElementById('inpTitle').style.display = isReply ? 'none' : 'block';
+  document.getElementById('flairSection').style.display = isReply ? 'none' : 'block';
+  document.getElementById('modalTitle').textContent = isReply ? 'Post Reply' : 'New Transmission';
+  isVerified=false;captchaToken=null;
+  const b=document.getElementById('submitBtn');b.disabled=true;b.classList.add('opacity-50','cursor-not-allowed');b.innerText='Transmit Message';
+  if(typeof turnstile!=='undefined')turnstile.reset();
+}
+function closeModal(){document.getElementById('postModal').classList.add('hidden');}
+async function router(silent=false){
+  closeMenu();closeSearch();
+  const path=window.location.pathname,sp=new URLSearchParams(window.location.search);
+  const tm=path.match(/\/thread\/([^/?]+)/);
+  if(tm){
+    const threadId=idFromSlug(tm[1]),page=parseInt(sp.get('page')||'1');
+    const ck=`?id=${threadId}&page=${page}`;
+    const data=await api(ck);
+    if(data){if(silent){const nc=data.totalReplies||data.replies?.length||0;if(nc>_trc){showNRB(nc-_trc);cSet(ck,data);}}else renderThread(data,page);}
+  }else{
+    const fm=path.match(/\/forum\/([a-z]+)\/?$/);
+    const pathFlair=fm&&['ent','pol','gen','media','tech'].includes(fm[1])?fm[1]:null;
+    if(pathFlair&&pathFlair!==_flair){_flair=pathFlair;document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.toggle('active',b.textContent.toLowerCase()===_flair);});}
+    const qs=`api/threads?flair=${_flair||''}&sort=${_sort}`;
+    const d=cGet(qs)||await (async()=>{const r=await fetch(`${W}${qs}`);const j=await r.json();cSet(qs,j);return j;})();
+    if(!silent){renderBoard(d||[]);loadStorage();}
+  }
+}
+const _imgObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){const el=e.target;if(el.dataset.src){el.src=el.dataset.src;delete el.dataset.src;}_imgObs.unobserve(el);}});
+},{rootMargin:'200px'});
+function observeLazyImgs(){document.querySelectorAll('img.lazyimg').forEach(el=>_imgObs.observe(el));}
+setInterval(()=>{if(document.hidden)return;cClr();router(window.location.pathname.includes('/thread/'));},POLL_MS);
+window.onpopstate=()=>{cClr();router();};
+loadSiteBanner();router();
+</script>
+</body>
+</html>
